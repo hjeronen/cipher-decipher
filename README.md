@@ -1,8 +1,8 @@
 # cipher-decipher
 
-(Harjoitustyö: Tietorakenteet ja algoritmit -kurssin palautusrepositorio)
+(Data structures project 2022 repository)
 
-## Dokumentaatio
+## Documentation
 
-### Viikkoraportit
-* [Viikkoraportti 1](https://github.com/hjeronen/cipher-decipher/blob/main/dokumentaatio/Viikkoraportti_1.md)
+### Weekly Reports
+* [Week report 1](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/week_report_1.md)
