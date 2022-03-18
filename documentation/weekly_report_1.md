@@ -1,10 +1,10 @@
 # Week report 1
 
 ### What have I done this week?
-This week I did research on some of the subjects, and after choosing the topic I read mostly wikipedia-articles on that or any related subject. I was on the fence between two topics and wasted some time considering how to solve the other one (creating an interpreter for regular-expressions). However, I chose to make a program that decrypts a simple-substitution cipher using frequency analysis. As an introductory exercise, I decrypted some sample texts I found online and tried to find some example algorithms.
+This week I did research on some of the subjects, and after choosing the topic I read mostly wikipedia-articles on that or any related subject. I was on the fence between two topics and wasted some time considering how to solve the other one (creating an interpreter for regular-expressions). However, I chose to make a program that decrypts a simple-substitution cipher using frequency analysis. As an introductory exercise, I decrypted some sample texts I found online and tried to find some example algorithms. I have also initialized the project and written the project specification document.
 
 ### How has the project progressed?
-I have initialized a GitHub-repository and created a Gradle project.
+I have initialized a GitHub-repository, sorted out some configuration issues and created a Gradle project.
 
 ### What did I learn this week/today?
 I learned about frequency analysis and trie data structure, which were both new to me.
@@ -16,3 +16,6 @@ It also seemed a bit difficult to estimate the time and space complexity for the
 
 ### What next?
 I will figure out the core logic for the solution and try to find more source materials if necessary.
+
+
+This week I used approximately 15 hours for the course.
