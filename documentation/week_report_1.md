@@ -1,7 +1,7 @@
 # Week report 1
 
 ### What have I done this week?
-This week I did research on some of the topics, and after choosing one I read mostly wikipedia-articles on that or any related subjects. I was on the fence between two topics and wasted some time considering how to solve the other one (creating an interpreter for regular-expressions). However, I chose to make a program that decrypts a simple-substitution cipher using frequency analysis. I familiarized myself with fequency analysis and tried to find some example algorithms and more sources. I have also initialized the project and written the project specification document.
+This week I did research on some of the topics, and after choosing one I read mostly wikipedia-articles on that or any related subjects. I was on the fence between two topics and used some time considering how to solve the other one (creating an interpreter for regular-expressions). However, I chose to make a program that decrypts a simple-substitution cipher using frequency analysis. I familiarized myself with fequency analysis and tried to find some example algorithms and more sources. I have also initialized the project and written the project specification document.
 
 ### How has the project progressed?
 I have initialized a GitHub-repository, sorted out some configuration issues and created a Gradle project.
