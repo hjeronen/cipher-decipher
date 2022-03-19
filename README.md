@@ -2,6 +2,8 @@
 
 (Data structures project 2022 repository)
 
+A simple-substitution cipher decryption program.
+
 ## Documentation
 * [Project Specification](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/project_specification.md)
 
