@@ -5,8 +5,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import javax.swing.JFrame;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -28,15 +26,17 @@ public class GUI implements Runnable {
         frame.setLayout(new GridLayout(3, 1));
         
         Container container = frame.getContentPane();
-        JTextField input = new JTextField("");
-        JTextField output = new JTextField("");
+        JTextField input = new JTextField("input");
+        JTextField key = new JTextField("key");
+        JTextField output = new JTextField("output");
         container.add(input);
+        container.add(key);
         container.add(output);
         
-        Listener listener = new Listener(this.decrypter, input, output);
+        Listener listener = new Listener(this.decrypter, input, key, output);
         
-        JPanel panel = new JPanel(new GridLayout(1, 1));
-        JButton decrypt = new JButton("Find");
+        JPanel panel = new JPanel(new GridLayout(1, 3));
+        JButton decrypt = new JButton("Decrypt");
         decrypt.addActionListener(listener);
         panel.add(decrypt);
         container.add(panel);
