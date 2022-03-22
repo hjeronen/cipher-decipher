@@ -2,7 +2,6 @@ apply plugin: 'java'
 apply plugin: 'jacoco'
 apply plugin: 'application'
 
-
 mainClassName = 'cipher.decipher.Main'
 
 repositories {
@@ -10,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation     'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13'
 }
 
 jacocoTestReport {
