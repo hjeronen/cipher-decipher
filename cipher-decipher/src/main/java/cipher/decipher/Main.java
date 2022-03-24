@@ -1,8 +1,7 @@
 package cipher.decipher;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Scanner;
+import ui.GUI;
+import logic.Decrypter;
 import javax.swing.SwingUtilities;
 
 public class Main {

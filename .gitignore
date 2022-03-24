@@ -1,2 +1,3 @@
 /cipher-decipher/.gradle/
 /cipher-decipher/build/
+*/test_words.txt
