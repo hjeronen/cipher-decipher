@@ -1,6 +1,6 @@
 # cipher-decipher
 
-(Data structures project 2022 repository)
+([Data structures project 2022](https://tiralabra.github.io/2022_p4/index) repository)
 
 A simple-substitution cipher decryption program.
 
