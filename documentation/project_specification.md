@@ -27,3 +27,4 @@ Forming a trie tree will require looping through the input text, handling each c
 * [Frequency Analysis](https://www.101computing.net/frequency-analysis/)
 * [Substitution cipher](https://en.wikipedia.org/wiki/Substitution_cipher)
 * [Trie](https://en.wikipedia.org/wiki/Trie)
+* The used dictionary was copied from here: (https://github.com/dwyl/english-words), they state that the original source is this: (https://web.archive.org/web/20131118073324/http://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable)
