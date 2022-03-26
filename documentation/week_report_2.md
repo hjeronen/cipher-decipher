@@ -17,6 +17,7 @@ I have probably heard of StringBuilder class before but it did not occur to me t
 I did have some practical questions:
 1. Previously I have had problems using JavaFX with Gradle, but Swing seems to work fine, so I used it for the ui. Is this ok or will it cause problems later?
 2. Should the userinterface be tested/included in the test report?
+3. Is there some specific set of checkstyle rules that should be used? I could not get [the example project's](https://github.com/TiraLabra/Testing-and-rmq) ruleset to work (it gave 'Unable to create Root Module' error when I copied the rules from there) but the ruleset from the course [Ohjelmistotekniikka](https://github.com/ohjelmistotekniikka-hy/syksy-2020/blob/main/web/checkstyle.md) works just fine (except that I have 2 methods that are too long).
 
 ### What next?
 Next week I will implement rest of the frequency analysis and finish the decryption method. Perhaps the decrypter class should be divided into two classes, one for handling the text analysis and one doing the decryption.
