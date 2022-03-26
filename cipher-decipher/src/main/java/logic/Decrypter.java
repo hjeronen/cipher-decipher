@@ -148,7 +148,7 @@ public class Decrypter {
             if (sbarray[i] == null) {
                 break;
             }
-            string(0, sbarray[i], sbarray[i].toString());
+            decypher(0, sbarray[i], sbarray[i].toString());
         }
 
         System.out.println("results: ");
@@ -160,13 +160,13 @@ public class Decrypter {
     }
 
     /**
-     * Decypher method. Will go through all possible substitutions and adds
+     * Deciphering method. Will go through all possible substitutions with backtracking and adds
      * actual words to the result list. Takes forever to compute. TODO: work out
      * how to use frequencies
      * 
      * This is still work in progress!
      */
-    public void string(int i, StringBuilder string, String cipher) {
+    public void decypher(int i, StringBuilder string, String cipher) {
         // check if reached the end of cipher-word
         if (i == cipher.length()) {
             if (findWord(string.toString())) {
@@ -176,7 +176,7 @@ public class Decrypter {
             // check if cipher char at i has been substituted, else try some char at it
             if (this.substituted[i]) {
                 // move to next char
-                string(i + 1, string, cipher);
+                decypher(i + 1, string, cipher);
             } else {
                 // possible letters for substitution
                 String abc = "abcdefghijklmnopqrstuvwxyz";
@@ -198,7 +198,7 @@ public class Decrypter {
                     // substitute those with char at j from abc
                     substitute(indexes, string, abc.charAt(j));
                     // call string(i + 1, string, cipher)
-                    string(i + 1, string, cipher);
+                    decypher(i + 1, string, cipher);
                     // undo substitution
                     substitute(indexes, string, character);
                     for (int integer : indexes) {
