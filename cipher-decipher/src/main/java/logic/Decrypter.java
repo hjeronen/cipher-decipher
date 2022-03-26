@@ -85,6 +85,8 @@ public class Decrypter {
     /**
      * Decryption function. Takes a ciphered text as parameter and returns it
      * decrypted.
+     * 
+     * This is still work in progress!
      *
      * @param text input from user
      *
@@ -113,9 +115,9 @@ public class Decrypter {
         }
 
         // find ciphertext's character frequencies
-        double[] freq = new double[cipherLetters.length()];
+        double[] freq = new double[128];
         for (int i = 0; i < cipherLetters.length(); i++) {
-            freq[i] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
+            freq[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
         }
 
         // form StringBuilder array of all words in ciphertext, excluding non-letters
@@ -161,6 +163,8 @@ public class Decrypter {
      * Decypher method. Will go through all possible substitutions and adds
      * actual words to the result list. Takes forever to compute. TODO: work out
      * how to use frequencies
+     * 
+     * This is still work in progress!
      */
     public void string(int i, StringBuilder string, String cipher) {
         // check if reached the end of cipher-word

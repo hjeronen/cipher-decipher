@@ -60,7 +60,7 @@ public class Trie {
      * 
      * This function is done according to the pseudocode in wikipedia: https://en.wikipedia.org/wiki/Trie#Searching
      * 
-     * @param   key the substring that is looked for.
+     * @param   key the substring that is searched for.
      * @return true if the key was found, false if not
      */
     public Boolean findSubstring(String key) {
