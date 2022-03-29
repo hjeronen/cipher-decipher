@@ -18,6 +18,9 @@ public class Decrypter {
 
     private boolean[] taken;
     private boolean[] substituted;
+    private char[] substitutions;
+
+    private String result;
 
     private ArrayList<String> results;
 
@@ -51,7 +54,8 @@ public class Decrypter {
         try {
             Scanner reader = new Scanner(new File(filename));
             while (reader.hasNext()) {
-                words.add(reader.nextLine());
+                String[] parts = reader.nextLine().split(",");
+                words.add(parts[1]);
             }
         } catch (Exception exception) {
             System.out.println("Dictionary creation failed.");
@@ -68,8 +72,10 @@ public class Decrypter {
     public void initializeArrays(int length) {
         // form array for checking which letters have been used
         this.taken = new boolean[128];
+        this.substitutions = new char[128];
         for (int i = 0; i < this.taken.length; i++) {
             this.taken[i] = false;
+            this.substitutions[i] = '*';
         }
 
         // form array for checking if some letter has been substituted
@@ -85,7 +91,7 @@ public class Decrypter {
     /**
      * Decryption function. Takes a ciphered text as parameter and returns it
      * decrypted.
-     * 
+     *
      * This is still work in progress!
      *
      * @param text input from user
@@ -115,11 +121,10 @@ public class Decrypter {
         }
 
         // find ciphertext's character frequencies
-        double[] freq = new double[128];
-        for (int i = 0; i < cipherLetters.length(); i++) {
-            freq[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
-        }
-
+//        double[] freq = new double[128];
+//        for (int i = 0; i < cipherLetters.length(); i++) {
+//            freq[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
+//        }
         // form StringBuilder array of all words in ciphertext, excluding non-letters
         StringBuilder[] sbarray = new StringBuilder[text.length()];
         int index = 0;
@@ -144,39 +149,62 @@ public class Decrypter {
         }
 
         // decrypt each word in sbarray
-        for (int i = 0; i < sbarray.length; i++) {
-            if (sbarray[i] == null) {
-                break;
-            }
-            decypher(0, sbarray[i], sbarray[i].toString());
-        }
+//        for (int i = 0; i < sbarray.length; i++) {
+//            if (sbarray[i] == null) {
+//                break;
+//            }
+//
+//            if (decypher(0, sbarray[i], sbarray[i].toString())) {
+//                for (int j = 0; j < this.substitutions.length; j++) {
+//                    if (this.substitutions[j] != '*') {
+//                        sbarray[i].toString().replace((char) j, this.substitutions[j]);
+//                    }
+//                }
+//            }
+//        }
+        // decrypt whole text
+        String modifiedText = text.replaceAll("[^a-zA-Z\\d\\s:]", "");
+        StringBuilder decryption = new StringBuilder(modifiedText);
+        this.result = "";
+
+        decypher(0, 0, decryption, modifiedText);
 
         System.out.println("results: ");
         for (String w : this.results) {
             System.out.println(w);
         }
+        System.out.println(this.result);
 
-        return "working on it";
+        return this.result;
     }
 
     /**
-     * Deciphering method. Will go through all possible substitutions with backtracking and adds
-     * actual words to the result list. Takes forever to compute. TODO: work out
-     * how to use frequencies
-     * 
+     * Deciphering method. Will go through all possible substitutions with
+     * backtracking and adds actual words to the result list. Takes forever to
+     * compute. TODO: work out how to use frequencies
+     *
      * This is still work in progress!
      */
-    public void decypher(int i, StringBuilder string, String cipher) {
+    public boolean decypher(int start, int end, StringBuilder string, String cipher) {
+
         // check if reached the end of cipher-word
-        if (i == cipher.length()) {
-            if (findWord(string.toString())) {
-                this.results.add(string.toString());
+        if (end == cipher.length()) {
+            if (findWord(string.toString().substring(start, end))) {
+                this.result = string.toString();
+                return true;
             }
+            return false;
+        // check if end of word
+        } else if (cipher.charAt(end) == ' ') {
+            if (findWord(string.toString().substring(start, end))) {
+                return decypher(end + 1, end + 1, string, cipher);
+            }
+            return false;
         } else {
             // check if cipher char at i has been substituted, else try some char at it
-            if (this.substituted[i]) {
+            if (this.substituted[end]) {
                 // move to next char
-                decypher(i + 1, string, cipher);
+                return decypher(start, end + 1, string, cipher);
             } else {
                 // possible letters for substitution
                 String abc = "abcdefghijklmnopqrstuvwxyz";
@@ -187,7 +215,7 @@ public class Decrypter {
                     }
                     this.taken[abc.charAt(j)] = true;
                     // find all indexes of ciphered character
-                    char character = cipher.charAt(i);
+                    char character = cipher.charAt(end);
                     ArrayList<Integer> indexes = new ArrayList<Integer>();
                     for (int z = 0; z < cipher.length(); z++) {
                         if (cipher.charAt(z) == character) {
@@ -198,7 +226,9 @@ public class Decrypter {
                     // substitute those with char at j from abc
                     substitute(indexes, string, abc.charAt(j));
                     // call string(i + 1, string, cipher)
-                    decypher(i + 1, string, cipher);
+                    if (decypher(start, end + 1, string, cipher)) {
+                        return true;
+                    }
                     // undo substitution
                     substitute(indexes, string, character);
                     for (int integer : indexes) {
@@ -207,6 +237,7 @@ public class Decrypter {
                     // free letter and try next one
                     this.taken[abc.charAt(j)] = false;
                 }
+                return false;
             }
         }
     }
