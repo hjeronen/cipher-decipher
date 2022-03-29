@@ -15,14 +15,12 @@ public class Decrypter {
     private Trie dictionary;
 
     private double[] frequencies;
+    private double[] cipherFrequencies;
 
     private boolean[] taken;
     private boolean[] substituted;
-    private char[] substitutions;
 
     private String result;
-
-    private ArrayList<String> results;
 
     /**
      * Decrypter constructor. Also creates the dictionary and an array of the
@@ -37,6 +35,9 @@ public class Decrypter {
         String abc = "abcdefghijklmnopqrstuvwxyz";
         double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9, 6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1, 5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
         this.frequencies = new double[128];
+        for (int i = 0; i < this.frequencies.length; i++) {
+            this.frequencies[i] = 200;
+        }
         for (int i = 0; i < abc.length(); i++) {
             this.frequencies[abc.charAt(i)] = freq[i];
         }
@@ -70,22 +71,18 @@ public class Decrypter {
      * @param length the length of the ciphered text
      */
     public void initializeArrays(int length) {
-        // form array for checking which letters have been used
+        // form arrays for checking which letters have been used and for saving the frequencies of cipher text characters
         this.taken = new boolean[128];
-        this.substitutions = new char[128];
+        this.cipherFrequencies = new double[128];
         for (int i = 0; i < this.taken.length; i++) {
             this.taken[i] = false;
-            this.substitutions[i] = '*';
+            this.cipherFrequencies[i] = 0;
         }
-
         // form array for checking if some letter has been substituted
         this.substituted = new boolean[length];
         for (int i = 0; i < this.substituted.length; i++) {
             this.substituted[i] = false;
         }
-
-        // resultlist for possible words
-        this.results = new ArrayList<String>();
     }
 
     /**
@@ -99,17 +96,21 @@ public class Decrypter {
      * @return decrypted text
      */
     public String decrypt(String text) {
+        // cleanup text
         text = text.toLowerCase();
+        String modifiedText = text.replaceAll("[^a-zA-Z\\d\\s:]", "");
+        StringBuilder decryption = new StringBuilder(modifiedText);
+        this.result = "";
 
         initializeArrays(text.length());
 
-        // find all unique letters in ciphertext and indexes for each letter
+        // find all unique letters in ciphertext and indexes for each letter for counting frequencies - could do this with a int[]
         HashMap<String, ArrayList<Integer>> indexes = new HashMap<String, ArrayList<Integer>>();
         String cipherLetters = "";
-
+        String abc = "abcdefghijklmnopqrstuvwxyz";
         for (int i = 0; i < text.length(); i++) {
             String character = "" + text.charAt(i);
-            if (character.equals(" ")) {
+            if (!abc.contains(character)) {
                 continue;
             }
             if (!indexes.containsKey(character)) {
@@ -121,80 +122,36 @@ public class Decrypter {
         }
 
         // find ciphertext's character frequencies
-//        double[] freq = new double[128];
-//        for (int i = 0; i < cipherLetters.length(); i++) {
-//            freq[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
-//        }
-        // form StringBuilder array of all words in ciphertext, excluding non-letters
-        StringBuilder[] sbarray = new StringBuilder[text.length()];
-        int index = 0;
-        String word = "";
-        String abc = "abcdefghijklmnopqrstuvwxyz";
-        for (int i = 0; i < text.length(); i++) {
-            if (!abc.contains("" + text.charAt(i))) {
-                if (!word.equals("")) {
-                    sbarray[index] = new StringBuilder(word);
-                    index++;
-                    word = "";
-                }
-                continue;
-            }
-            word += text.charAt(i);
-            // remember to add last word
-            if (i == text.length() - 1) {
-                sbarray[index] = new StringBuilder(word);
-                index++;
-                word = "";
-            }
+        for (int i = 0; i < cipherLetters.length(); i++) {
+            this.cipherFrequencies[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
         }
-
-        // decrypt each word in sbarray
-//        for (int i = 0; i < sbarray.length; i++) {
-//            if (sbarray[i] == null) {
-//                break;
-//            }
-//
-//            if (decypher(0, sbarray[i], sbarray[i].toString())) {
-//                for (int j = 0; j < this.substitutions.length; j++) {
-//                    if (this.substitutions[j] != '*') {
-//                        sbarray[i].toString().replace((char) j, this.substitutions[j]);
-//                    }
-//                }
-//            }
-//        }
+        
         // decrypt whole text
-        String modifiedText = text.replaceAll("[^a-zA-Z\\d\\s:]", "");
-        StringBuilder decryption = new StringBuilder(modifiedText);
-        this.result = "";
-
         decypher(0, 0, decryption, modifiedText);
-
-        System.out.println("results: ");
-        for (String w : this.results) {
-            System.out.println(w);
-        }
-        System.out.println(this.result);
 
         return this.result;
     }
 
     /**
-     * Deciphering method. Will go through all possible substitutions with
-     * backtracking and adds actual words to the result list. Takes forever to
-     * compute. TODO: work out how to use frequencies
+     * Deciphering method. Uses character frequencies to pick the most likely 
+     * substitutions. Will stop at the first possible solution. Keeps track of 
+     * separate words with start and end indexes.
      *
-     * This is still work in progress!
+     * @param   start   starting index of a word in text
+     * @param   end end index of a word in text
+     * @param   string  string where the substitutions are made
+     * @param   cipher  original ciphertext
+     * @return true if suitable decryption was found, false if not
      */
     public boolean decypher(int start, int end, StringBuilder string, String cipher) {
-
-        // check if reached the end of cipher-word
+        // check if reached the end of ciphertext
         if (end == cipher.length()) {
             if (findWord(string.toString().substring(start, end))) {
                 this.result = string.toString();
                 return true;
             }
             return false;
-        // check if end of word
+            // check if end of word
         } else if (cipher.charAt(end) == ' ') {
             if (findWord(string.toString().substring(start, end))) {
                 return decypher(end + 1, end + 1, string, cipher);
@@ -206,16 +163,20 @@ public class Decrypter {
                 // move to next char
                 return decypher(start, end + 1, string, cipher);
             } else {
-                // possible letters for substitution
-                String abc = "abcdefghijklmnopqrstuvwxyz";
-                for (int j = 0; j < abc.length(); j++) {
-                    // check if letter has been used
-                    if (this.taken[abc.charAt(j)]) {
-                        continue;
-                    }
-                    this.taken[abc.charAt(j)] = true;
+                // list for chars that have been tried
+                char[] used = new char[128];
+                int index = 0;
+                char character = cipher.charAt(end);
+
+                double freq = this.cipherFrequencies[character];
+                char letter = getClosestAvailableKey(used, freq);
+
+                // loop until out of chars
+                while (letter != ' ') {
+                    this.taken[letter] = true;
+                    used[index] = letter;
+                    index++;
                     // find all indexes of ciphered character
-                    char character = cipher.charAt(end);
                     ArrayList<Integer> indexes = new ArrayList<Integer>();
                     for (int z = 0; z < cipher.length(); z++) {
                         if (cipher.charAt(z) == character) {
@@ -223,11 +184,15 @@ public class Decrypter {
                             this.substituted[z] = true;
                         }
                     }
-                    // substitute those with char at j from abc
-                    substitute(indexes, string, abc.charAt(j));
-                    // call string(i + 1, string, cipher)
-                    if (decypher(start, end + 1, string, cipher)) {
-                        return true;
+                    // substitute characters in string with letter
+                    substitute(indexes, string, letter);
+
+                    // if looks reasonable, move forward
+                    if (findSubstring(string.substring(start, end + 1))) {
+                        // call string(i + 1, string, cipher)
+                        if (decypher(start, end + 1, string, cipher)) {
+                            return true;
+                        }
                     }
                     // undo substitution
                     substitute(indexes, string, character);
@@ -235,7 +200,8 @@ public class Decrypter {
                         this.substituted[integer] = false;
                     }
                     // free letter and try next one
-                    this.taken[abc.charAt(j)] = false;
+                    this.taken[letter] = false;
+                    letter = getClosestAvailableKey(used, freq);
                 }
                 return false;
             }
@@ -247,14 +213,18 @@ public class Decrypter {
      * typical frequency as the ciphered char in cipher text. If the char is
      * already used as key another is chosen.
      *
-     * @param freq fequency of the cipher char in cipher text
+     * @param   used    a list of characters that have already been tried
+     * @param   freq frequency of the cipher char in cipher text
      * @return char with closest typical frequency
      */
-    public char getClosestAvailableKey(double freq) {
-        double closestFreq = 0;
+    public char getClosestAvailableKey(char[] used, double freq) {
+        double closestFreq = 1000;
         char closestChar = ' ';
         for (int i = Character.getNumericValue('a'); i < this.frequencies.length; i++) {
             if (this.taken[i]) {
+                continue;
+            }
+            if (checkIfCharInList(used, (char) i)) {
                 continue;
             }
             if (Math.abs(this.frequencies[i] - freq) < Math.abs(closestFreq - freq)) {
@@ -263,6 +233,22 @@ public class Decrypter {
             }
         }
         return closestChar;
+    }
+    
+    /**
+     * Check if a character is on the given list.
+     *
+     * @param   list    a list of characters
+     * @param   character character that is searched for
+     * @return true if character was on the list, false if not
+     */
+    public boolean checkIfCharInList(char[] list, char character) {
+        for (int j = 0; j < list.length; j++) {
+            if (list[j] == character) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
