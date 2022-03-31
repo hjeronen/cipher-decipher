@@ -31,6 +31,8 @@ public class DecrypterTest {
         writer.write("she");
         writer.write(System.getProperty( "line.separator" ));
         writer.write("shell");
+        writer.write(System.getProperty( "line.separator" ));
+        writer.write("zeiss");
         writer.close();
         this.decrypter = new Decrypter("test_words.txt");
         this.testtext = "tifmm";
@@ -44,8 +46,9 @@ public class DecrypterTest {
     @Test
     public void getClosestAvailableKeyReturnsCharWithClosestFrequency() {
         this.decrypter.initializeArrays(this.testtext.length());
+        char[] listOfUsedChars = new char[1];
         // the frequency of letter d is 4.1 %
-        assertTrue(this.decrypter.getClosestAvailableKey(4.1) == 'd');
+        assertTrue(this.decrypter.getClosestAvailableKey(listOfUsedChars, 4.1) == 'd');
     }
     
     @Test
@@ -71,5 +74,10 @@ public class DecrypterTest {
         this.decrypter.substitute(indexes, test, 'p');
         
         assertEquals(test.toString(), "peach");
+    }
+    
+    @Test
+    public void decrypterReturnsADecryption() {
+        assertEquals(this.decrypter.decrypt(this.testtext), "shell");
     }
 }

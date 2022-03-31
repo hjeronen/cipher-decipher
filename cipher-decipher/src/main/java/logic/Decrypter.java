@@ -55,8 +55,7 @@ public class Decrypter {
         try {
             Scanner reader = new Scanner(new File(filename));
             while (reader.hasNext()) {
-                String[] parts = reader.nextLine().split(",");
-                words.add(parts[1]);
+                words.add(reader.nextLine());
             }
         } catch (Exception exception) {
             System.out.println("Dictionary creation failed.");
@@ -103,7 +102,7 @@ public class Decrypter {
         this.result = "";
 
         initializeArrays(text.length());
-
+        
         // find all unique letters in ciphertext and indexes for each letter for counting frequencies - could do this with a int[]
         HashMap<String, ArrayList<Integer>> indexes = new HashMap<String, ArrayList<Integer>>();
         String cipherLetters = "";
