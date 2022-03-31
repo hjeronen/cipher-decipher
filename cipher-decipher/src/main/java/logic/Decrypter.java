@@ -3,7 +3,6 @@ package logic;
 import domain.Trie;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -75,7 +74,6 @@ public class Decrypter {
         this.cipherFrequencies = new double[128];
         for (int i = 0; i < this.taken.length; i++) {
             this.taken[i] = false;
-            this.cipherFrequencies[i] = 0;
         }
         // form array for checking if some letter has been substituted
         this.substituted = new boolean[length];
@@ -95,6 +93,7 @@ public class Decrypter {
      * @return decrypted text
      */
     public String decrypt(String text) {
+        long start = System.currentTimeMillis();
         // cleanup text
         text = text.toLowerCase();
         String modifiedText = text.replaceAll("[^a-zA-Z\\d\\s:]", "");
@@ -102,39 +101,41 @@ public class Decrypter {
         this.result = "";
 
         initializeArrays(text.length());
-        
-        // find all unique letters in ciphertext and indexes for each letter for counting frequencies - could do this with a int[]
-        HashMap<String, ArrayList<Integer>> indexes = new HashMap<String, ArrayList<Integer>>();
+
+        // find all unique letters in ciphertext and their total count, excluding nonletters
+        int[] counts = new int[128];
         String cipherLetters = "";
         String abc = "abcdefghijklmnopqrstuvwxyz";
-        for (int i = 0; i < text.length(); i++) {
-            String character = "" + text.charAt(i);
-            if (!abc.contains(character)) {
+        // int total = 0; faster with modifiedText.length()!
+        for (int i = 0; i < modifiedText.length(); i++) {
+            if (!abc.contains("" + modifiedText.charAt(i))) {
                 continue;
             }
-            if (!indexes.containsKey(character)) {
-                ArrayList<Integer> list = new ArrayList<>();
-                indexes.put(character, list);
-                cipherLetters += character;
+            //total++;
+            if (!cipherLetters.contains("" + modifiedText.charAt(i))) {
+                cipherLetters += modifiedText.charAt(i);
             }
-            indexes.get(character).add(i);
+            counts[modifiedText.charAt(i)] += 1;
         }
 
         // find ciphertext's character frequencies
         for (int i = 0; i < cipherLetters.length(); i++) {
-            this.cipherFrequencies[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
+            this.cipherFrequencies[cipherLetters.charAt(i)] = (double) counts[cipherLetters.charAt(i)] / modifiedText.length() * 100;
         }
 
         // decrypt whole text
         decypher(0, 0, decryption, modifiedText);
 
+        long end = System.currentTimeMillis();
+        System.out.println("Elapsed Time in milliseconds: " + (end - start));
+
         return this.result;
     }
 
     /**
-     * Deciphering method. Uses character frequencies to pick the most likely
-     * substitutions. Will stop at the first possible solution. Keeps track of
-     * separate words with start and end indexes.
+     * Decipher given text with backtracking. Uses character frequencies to pick
+     * the most likely substitutions. Will stop at the first possible solution.
+     * Keeps track of separate words with start and end indexes.
      *
      * @param start starting index of a word in text
      * @param end end index of a word in text
@@ -174,7 +175,7 @@ public class Decrypter {
                         indexes.add(z);
                     }
                 }
-                
+
                 // get the frequency of ciphered character in cipher text
                 double freq = this.cipherFrequencies[character];
                 // find letter with closest frequency
@@ -186,7 +187,7 @@ public class Decrypter {
                     this.taken[letter] = true;
                     used[index] = letter;
                     index++;
-                    
+
                     // mark the indexes that are substituted
                     for (int i : indexes) {
                         this.substituted[i] = true;
