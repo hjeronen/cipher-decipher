@@ -125,7 +125,7 @@ public class Decrypter {
         for (int i = 0; i < cipherLetters.length(); i++) {
             this.cipherFrequencies[cipherLetters.charAt(i)] = (double) indexes.get("" + cipherLetters.charAt(i)).size() / text.length() * 100;
         }
-        
+
         // decrypt whole text
         decypher(0, 0, decryption, modifiedText);
 
@@ -133,14 +133,14 @@ public class Decrypter {
     }
 
     /**
-     * Deciphering method. Uses character frequencies to pick the most likely 
-     * substitutions. Will stop at the first possible solution. Keeps track of 
+     * Deciphering method. Uses character frequencies to pick the most likely
+     * substitutions. Will stop at the first possible solution. Keeps track of
      * separate words with start and end indexes.
      *
-     * @param   start   starting index of a word in text
-     * @param   end end index of a word in text
-     * @param   string  string where the substitutions are made
-     * @param   cipher  original ciphertext
+     * @param start starting index of a word in text
+     * @param end end index of a word in text
+     * @param string string where the substitutions are made
+     * @param cipher original ciphertext
      * @return true if suitable decryption was found, false if not
      */
     public boolean decypher(int start, int end, StringBuilder string, String cipher) {
@@ -158,47 +158,58 @@ public class Decrypter {
             }
             return false;
         } else {
-            // check if cipher char at i has been substituted, else try some char at it
+            // check if cipher char at i has been substituted, else try some letter at it
             if (this.substituted[end]) {
                 // move to next char
                 return decypher(start, end + 1, string, cipher);
             } else {
-                // list for chars that have been tried
+                // list for letters that have been tried
                 char[] used = new char[128];
                 int index = 0;
                 char character = cipher.charAt(end);
 
+                // find all indexes of the ciphered character
+                ArrayList<Integer> indexes = new ArrayList<Integer>();
+                for (int z = 0; z < cipher.length(); z++) {
+                    if (cipher.charAt(z) == character) {
+                        indexes.add(z);
+                    }
+                }
+                
+                // get the frequency of ciphered character in cipher text
                 double freq = this.cipherFrequencies[character];
+                // find letter with closest frequency
                 char letter = getClosestAvailableKey(used, freq);
 
-                // loop until out of chars
+                // loop until out of substitute letters
                 while (letter != ' ') {
+                    // mark the substitute letter as taken and add it to the list of tried letters
                     this.taken[letter] = true;
                     used[index] = letter;
                     index++;
-                    // find all indexes of ciphered character
-                    ArrayList<Integer> indexes = new ArrayList<Integer>();
-                    for (int z = 0; z < cipher.length(); z++) {
-                        if (cipher.charAt(z) == character) {
-                            indexes.add(z);
-                            this.substituted[z] = true;
-                        }
+                    
+                    // mark the indexes that are substituted
+                    for (int i : indexes) {
+                        this.substituted[i] = true;
                     }
+
                     // substitute characters in string with letter
                     substitute(indexes, string, letter);
 
                     // if looks reasonable, move forward
                     if (findSubstring(string.substring(start, end + 1))) {
-                        // call string(i + 1, string, cipher)
+                        // if string(i + 1, string, cipher) returns true, break loop
                         if (decypher(start, end + 1, string, cipher)) {
                             return true;
                         }
                     }
+
                     // undo substitution
                     substitute(indexes, string, character);
-                    for (int integer : indexes) {
-                        this.substituted[integer] = false;
+                    for (int i : indexes) {
+                        this.substituted[i] = false;
                     }
+
                     // free letter and try next one
                     this.taken[letter] = false;
                     letter = getClosestAvailableKey(used, freq);
@@ -213,8 +224,8 @@ public class Decrypter {
      * typical frequency as the ciphered char in cipher text. If the char is
      * already used as key another is chosen.
      *
-     * @param   used    a list of characters that have already been tried
-     * @param   freq frequency of the cipher char in cipher text
+     * @param used a list of characters that have already been tried
+     * @param freq frequency of the cipher char in cipher text
      * @return char with closest typical frequency
      */
     public char getClosestAvailableKey(char[] used, double freq) {
@@ -234,12 +245,12 @@ public class Decrypter {
         }
         return closestChar;
     }
-    
+
     /**
      * Check if a character is on the given list.
      *
-     * @param   list    a list of characters
-     * @param   character character that is searched for
+     * @param list a list of characters
+     * @param character character that is searched for
      * @return true if character was on the list, false if not
      */
     public boolean checkIfCharInList(char[] list, char character) {
