@@ -6,7 +6,7 @@ The testing is done using JUnit and can be run from the IDE or from command line
 As for now, very short word lists are used as test input to check that forming the datastructure and using it works as inteded.
 
 #### Trie datastructure
-The Trie class is tested to make sure that words in the given word list are found after inserting them to the trie, that the function for finding words returns true for whole words and false for subtsrings, that the function for finding substrings does return true for valid substrings and false for invalid substrings, and that searching for words that are not inserted in the trie returns false.
+The Trie class is tested to make sure that words in the given word list are found after inserting them to the trie, that the function for finding words returns true for whole words and false for subtsrings, that the function for finding substrings (beginning of a word) does return true for valid substrings and false for invalid substrings, and that searching for words that are not inserted in the trie returns false.
 
 #### Decrypter
 The tests for the Decrypter class make sure that the function for finding key value with closest frequency returns correct character (when no characters have been marked as used), that valid words and substrings are found, that substitution-function changes the characters in the string correctly and that the decryption function returns the likely decryption.
