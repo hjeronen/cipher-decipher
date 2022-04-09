@@ -45,7 +45,7 @@ public class DecrypterTest {
 
     @Test
     public void getClosestAvailableKeyReturnsCharWithClosestFrequency() {
-        this.decrypter.initializeArrays(this.testtext.length());
+        this.decrypter.initializeArrays();
         char[] listOfUsedChars = new char[1];
         // the frequency of letter d is 4.1 %
         assertTrue(this.decrypter.getClosestAvailableKey(listOfUsedChars, 4.1) == 'd');
@@ -67,7 +67,7 @@ public class DecrypterTest {
     }
     
     @Test
-    public void suibstituteChangesCharactersFromGivenIndexes() {
+    public void substituteChangesCharactersFromGivenIndexes() {
         StringBuilder test = new StringBuilder("reach");
         ArrayList<Integer> indexes = new ArrayList<Integer>();
         indexes.add(0);
