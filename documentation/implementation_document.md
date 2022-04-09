@@ -19,9 +19,18 @@ The uninformatively named argument j marks the index of a character in the word 
 
 If all the available key values have been tried and no suitable combination has been found, the word is marked as error, and the recursion moves to the next word. If there are too many errors, recursion will backtrack to the last working point. This backtracking will need to be improved, however.
 
+### GUI
+The userinterface is done with JavaFX and Swing because that seems to be the only one that works for my computer and Gradle installation. When the program starts the 'input' and 'output' texts indicate which textfield the user can paste the ciphered text and where the decrypted text will be printed. By pressing the 'Decrypt' button, the ciphered text in the upper field will be passed to the decryption class, and the result string will be placed to the lower field.
+
 ## Implemented time and space complexities
 
 ## Possible flaws and improvements
 At this moment the backtracking is too slow.
 
 ## Sources
+* [Backtracking](https://en.wikipedia.org/wiki/Backtracking)
+* [Frequency Analysis](https://www.101computing.net/frequency-analysis/)
+* [Substitution cipher](https://en.wikipedia.org/wiki/Substitution_cipher)
+* [Trie](https://en.wikipedia.org/wiki/Trie)
+* The dictionary_old was copied from here: https://github.com/dwyl/english-words, they state that the original source is this: https://web.archive.org/web/20131118073324/http://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable
+* The other dictionary was copied from here: https://github.com/filiph/english_words/blob/master/data/word-freq-top5000.csv, with own additions
