@@ -26,10 +26,6 @@ public class Decrypter {
     // what a certain char has been substituted with
     private char[] substitutions;
     
-    // for backing up in recursion, work in progress
-    private int[] firstAppearance;
-    private int indexToBackUpTo;
-    
     // arrays for cipherwords
     // changing
     private StringBuilder[] words;
@@ -98,7 +94,6 @@ public class Decrypter {
         }
         // for saving the frequencies of the cipher text characters
         this.cipherFrequencies = new double[128];
-        this.firstAppearance = new int[128];
     }
 
     /**
@@ -142,20 +137,21 @@ public class Decrypter {
         // form word lists
         // cipherwords-list is for original ciphered words
         this.cipherwords = modifiedText.split(" ");
+        // sort words from longest to shortest to speed up decryption
         // this sorting trick from https://stackoverflow.com/questions/35866240/how-to-sort-string-array-by-length-using-arrays-sort
         Arrays.sort(this.cipherwords, (a,b) -> b.length() - a.length());
-        // words-list has words were substitutions are tried on
+        // words-list has words where substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
             this.words[i] = new StringBuilder(this.cipherwords[i]);
         }
         
-        // determine the max amount of errors in the text
+        // set the max amount of errors allowed in the text
         this.maxErrors = (int) Math.floor(this.cipherwords.length * 0.10);
         System.out.println("Max allowed errors " + this.maxErrors);
         
         // find decryption by going through word-arrays and changing letters in words with backtracking
-        // increase amount of errors if no results
+        // increase amount of errors if no results - TODO: set some kind of limit here
         while(!findDecryption(0, 0, 0)) {
             this.maxErrors += 1;
         }
