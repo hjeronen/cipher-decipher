@@ -3,6 +3,7 @@ package logic;
 import domain.Trie;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -141,21 +142,25 @@ public class Decrypter {
         // form word lists
         // cipherwords-list is for original ciphered words
         this.cipherwords = modifiedText.split(" ");
+        // this sorting trick from https://stackoverflow.com/questions/35866240/how-to-sort-string-array-by-length-using-arrays-sort
+        Arrays.sort(this.cipherwords, (a,b) -> b.length() - a.length());
         // words-list has words were substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
             this.words[i] = new StringBuilder(this.cipherwords[i]);
         }
-
-        this.maxErrors = (int) Math.floor(this.cipherwords.length * 0.05);
+        
+        // determine the max amount of errors in the text
+        this.maxErrors = (int) Math.floor(this.cipherwords.length * 0.10);
         System.out.println("Max allowed errors " + this.maxErrors);
-
-        this.indexToBackUpTo = 0;
         
         // find decryption by going through word-arrays and changing letters in words with backtracking
-        findDecryption(0, 0, 0);
+        // increase amount of errors if no results
+        while(!findDecryption(0, 0, 0)) {
+            this.maxErrors += 1;
+        }
         
-        // form result text by getting the keys for original ciphered characters - TODO: workout how to use regular expressions
+        // form result text by getting the keys for original ciphered characters
         String resultText = "";
         for (int i = 0; i < text.length(); i++) {
             // non-letters are added as they are
@@ -233,7 +238,7 @@ public class Decrypter {
         // character has not been assigned a key value, so mark it as substituted now
         this.substituted[character] = true;
         // form list for key values that have been tried
-        char[] used = new char[27];
+        char[] used = new char[26];
         // mark the free spot in list
         int index = 0;
         // get the frequency of the ciphered character

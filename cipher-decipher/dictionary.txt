@@ -5002,8 +5002,6 @@ is
 spaceship
 spaceships
 won
-galactic
-spies
 managed
 plans
 empires
@@ -5016,3 +5014,5 @@ princess
 leia
 races
 aboard
+custodian
+starship
