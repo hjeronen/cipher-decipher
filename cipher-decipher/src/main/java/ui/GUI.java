@@ -27,7 +27,7 @@ public class GUI implements Runnable {
     @Override
     public void run() {
         this.frame = new JFrame("cipher-decipher");
-        this.frame.setPreferredSize(new Dimension(300, 150));
+        this.frame.setPreferredSize(new Dimension(500, 600));
         this.frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         
 
