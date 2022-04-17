@@ -147,13 +147,17 @@ public class Decrypter {
         }
         
         // set the max amount of errors allowed in the text
-        this.maxErrors = (int) Math.floor(this.cipherwords.length * 0.10);
+        double percentage = 0.03;
+        this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
         System.out.println("Max allowed errors " + this.maxErrors);
+        int multiply = 1;
         
         // find decryption by going through word-arrays and changing letters in words with backtracking
         // increase amount of errors if no results - TODO: set some kind of limit here
         while(!findDecryption(0, 0, 0)) {
-            this.maxErrors += 1;
+            multiply++;
+            this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
+            System.out.println("Max allowed errors " + this.maxErrors);
         }
         
         // form result text by getting the keys for original ciphered characters
@@ -256,7 +260,6 @@ public class Decrypter {
             word.setCharAt(j, key);
             
             // check if looks reasonable and move to next character
-            // if cannot find the beginning of the word, cannot find the whole word either - the whole word check is unnecessary?
             if (findSubstring(word.substring(0, j + 1))) {
                 if (findDecryption(j + 1, i, errors)) {
                     return true;
