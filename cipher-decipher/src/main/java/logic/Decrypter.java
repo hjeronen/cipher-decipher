@@ -25,13 +25,13 @@ public class Decrypter {
 
     // what a certain char has been substituted with
     private char[] substitutions;
-    
+
     // arrays for cipherwords
     // changing
     private StringBuilder[] words;
     // original
     private String[] cipherwords;
-    
+
     // how many errors are allowed
     private int maxErrors;
 
@@ -40,7 +40,7 @@ public class Decrypter {
      * typical frequencies of all letters.
      *
      * @param filename the name of the file that contains the wordlist that
-     * should be used
+     * should be used as a dictionary
      */
     public Decrypter(String filename) {
         this.dictionary = new Trie();
@@ -76,7 +76,42 @@ public class Decrypter {
         this.dictionary.createTrie(words);
     }
 
-    // need this for testing
+    /**
+     * Decryption function. Takes a ciphered text as parameter and returns it
+     * decrypted.
+     *
+     * @param text input from user
+     *
+     * @return decrypted text
+     */
+    public String decrypt(String text) {
+        long start = System.currentTimeMillis();
+        // cleanup text
+        String modifiedText = text.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
+        // prepare arrays and get character frequencies for ciphertext
+        initializeArrays();
+        findCharacterFrequencies(modifiedText);
+        formWordLists(modifiedText);
+
+        // set the max amount of errors allowed in the text
+        double percentage = 0.03;
+        this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+        System.out.println("Max allowed errors " + this.maxErrors);
+        int multiply = 1;
+
+        // find decryption by going through word-arrays and changing letters in words with backtracking
+        // increase amount of errors if no results - TODO: set some kind of limit here
+        while (!findDecryption(0, 0, 0)) {
+            multiply++;
+            this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
+            System.out.println("Max allowed errors " + this.maxErrors);
+        }
+
+        long end = System.currentTimeMillis();
+        System.out.println("Elapsed Time in milliseconds: " + (end - start));
+        return formResult(text);
+    }
+
     /**
      * Initializes the required arrays for decryption.
      *
@@ -97,27 +132,17 @@ public class Decrypter {
     }
 
     /**
-     * Decryption function. Takes a ciphered text as parameter and returns it
-     * decrypted.
+     * Get cipher text's character frequencies. Saves the frequencies in
+     * this.cipherFrequencies array at the place of the character in question.
      *
-     * This is still work in progress!
-     *
-     * @param text input from user
-     *
-     * @return decrypted text
+     * @param modifiedText ciphered text in lower case and without special
+     * characters
      */
-    public String decrypt(String text) {
-        long start = System.currentTimeMillis();
-        // cleanup text
-        String modifiedText = text.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
-
-        initializeArrays();
-
+    public void findCharacterFrequencies(String modifiedText) {
         // find all unique letters in ciphertext, their counts and total amount of characters, excluding nonletters
         int[] counts = new int[128];
         String cipherLetters = "";
-        String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        int total = 0; // faster with modifiedText.length()!
+        int total = 0;
         for (int i = 0; i < modifiedText.length(); i++) {
             if (modifiedText.charAt(i) == ' ') {
                 continue;
@@ -129,38 +154,41 @@ public class Decrypter {
             counts[modifiedText.charAt(i)] += 1;
         }
 
-        // find ciphertext's character frequencies
+        // save ciphertext's character frequencies
         for (int i = 0; i < cipherLetters.length(); i++) {
             this.cipherFrequencies[cipherLetters.charAt(i)] = (double) counts[cipherLetters.charAt(i)] / total * 100;
         }
+    }
 
-        // form word lists
+    /**
+     * Form word lists. Save the words in the cipher text into an array and sort
+     * by length in descending order.
+     *
+     * @param modifiedText ciphered text in lower case and without special
+     * characters
+     */
+    public void formWordLists(String modifiedText) {
         // cipherwords-list is for original ciphered words
         this.cipherwords = modifiedText.split(" ");
         // sort words from longest to shortest to speed up decryption
         // this sorting trick from https://stackoverflow.com/questions/35866240/how-to-sort-string-array-by-length-using-arrays-sort
-        Arrays.sort(this.cipherwords, (a,b) -> b.length() - a.length());
+        Arrays.sort(this.cipherwords, (a, b) -> b.length() - a.length());
         // words-list has words where substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
             this.words[i] = new StringBuilder(this.cipherwords[i]);
         }
-        
-        // set the max amount of errors allowed in the text
-        double percentage = 0.03;
-        this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-        System.out.println("Max allowed errors " + this.maxErrors);
-        int multiply = 1;
-        
-        // find decryption by going through word-arrays and changing letters in words with backtracking
-        // increase amount of errors if no results - TODO: set some kind of limit here
-        while(!findDecryption(0, 0, 0)) {
-            multiply++;
-            this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
-            System.out.println("Max allowed errors " + this.maxErrors);
-        }
-        
-        // form result text by getting the keys for original ciphered characters
+    }
+
+    /**
+     * Form result text. Change the original ciphered characters into the found
+     * key values.
+     *
+     * @param text original ciphered text
+     * @return text with ciphered characters changed to key values
+     */
+    public String formResult(String text) {
+        String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         String resultText = "";
         for (int i = 0; i < text.length(); i++) {
             // non-letters are added as they are
@@ -179,16 +207,13 @@ public class Decrypter {
             // add into result text the key for character
             resultText += this.substitutions[character];
         }
-
-        long end = System.currentTimeMillis();
-        System.out.println("Elapsed Time in milliseconds: " + (end - start));
         return resultText;
     }
 
     /**
-     * Decryption by word. Goes through words in this.cipherwords array and tries
-     * to find key values for ciphered characters. Keys for characters are selected 
-     * by availability and closest frequency.
+     * Decryption by word. Goes through words in this.cipherwords array and
+     * tries to find key values for ciphered characters. Keys for characters are
+     * selected by availability and closest frequency.
      *
      * @param j character index
      * @param i word index
@@ -212,9 +237,9 @@ public class Decrypter {
         // save the word where substitutions are made and the original ciphered word
         StringBuilder word = this.words[i];
         String cipher = this.cipherwords[i];
-        
         // the ciphered character that is to be changed
         char character = cipher.charAt(j);
+
         // check if character has already been assigned a key value
         if (this.substituted[character]) {
             // change the cipher character to key value
@@ -235,6 +260,7 @@ public class Decrypter {
             // if not at end of word, or if word was found or there have been too many errors, continue
             return findDecryption(j + 1, i, errors);
         }
+
         // character has not been assigned a key value, so mark it as substituted now
         this.substituted[character] = true;
         // form list for key values that have been tried
@@ -245,7 +271,7 @@ public class Decrypter {
         double freq = this.cipherFrequencies[character];
         // find a key value that is available and that has the closest frequency
         char key = getClosestAvailableKey(used, freq);
-        
+
         // while there are available key values that have not been tried (empty char means out of keys)
         while (key != ' ') {
             // mark key value as taken
@@ -258,14 +284,14 @@ public class Decrypter {
             index++;
             // change the ciphered character in word to key
             word.setCharAt(j, key);
-            
+
             // check if looks reasonable and move to next character
             if (findSubstring(word.substring(0, j + 1))) {
                 if (findDecryption(j + 1, i, errors)) {
                     return true;
                 }
             }
-            
+
             // substring was not found, so possibly not working substitution
             // free key
             this.taken[key] = false;
@@ -278,7 +304,7 @@ public class Decrypter {
         this.substituted[character] = false;
         // no key value found for the character
         this.substitutions[character] = '*';
-        
+
         // check if first letter of the word
         if (j == 0) {
             // if arrived here, means that no possible substitutions were found for any of the unsibstituted characters in the word
@@ -291,7 +317,7 @@ public class Decrypter {
         // if not back at the beginning of the word or if too many errors, return back to previous point in recursion
         return false;
     }
-    
+
     /**
      * Find the closest frequency. Finds the char that has the same or closest
      * typical frequency as the ciphered char in cipher text. If the char is
@@ -333,20 +359,6 @@ public class Decrypter {
             }
         }
         return false;
-    }
-
-    /**
-     * Substitute chars at given indexes. The chars in the StringBuilder whose
-     * indexes are on the list are substituted with given value.
-     *
-     * @param indexes list of indexes of the characters that are replaced
-     * @param sb StringBuilder word that is modified
-     * @param value the character that is placed on given indexes of the word
-     */
-    public void substitute(ArrayList<Integer> indexes, StringBuilder sb, char value) {
-        for (int index : indexes) {
-            sb.setCharAt(index, value);
-        }
     }
 
     /**

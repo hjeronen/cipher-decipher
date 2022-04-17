@@ -1,8 +1,8 @@
+package logic;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import logic.Decrypter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,16 +64,6 @@ public class DecrypterTest {
     @Test
     public void findSubstringReturnsTrueForSubstrings() {
         assertTrue(this.decrypter.findSubstring("se"));
-    }
-    
-    @Test
-    public void substituteChangesCharactersFromGivenIndexes() {
-        StringBuilder test = new StringBuilder("reach");
-        ArrayList<Integer> indexes = new ArrayList<Integer>();
-        indexes.add(0);
-        this.decrypter.substitute(indexes, test, 'p');
-        
-        assertEquals(test.toString(), "peach");
     }
     
     @Test
