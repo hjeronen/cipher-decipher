@@ -3,6 +3,7 @@ package cipher.decipher;
 import ui.GUI;
 import logic.Decrypter;
 import javax.swing.SwingUtilities;
+import util.PerformanceTester;
 
 public class Main {
 
@@ -11,8 +12,9 @@ public class Main {
      */
     public static void main(String[] args) {
         Decrypter decrypter = new Decrypter("dictionary_long.txt");
+        PerformanceTester tester = new PerformanceTester(decrypter);
         
-        GUI gui = new GUI(decrypter);
+        GUI gui = new GUI(decrypter, tester);
         SwingUtilities.invokeLater(gui);
 
     }

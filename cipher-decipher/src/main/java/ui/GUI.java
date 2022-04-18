@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
+import util.PerformanceTester;
 
 /**
  * The graphical userinterface.
@@ -19,9 +20,11 @@ public class GUI implements Runnable {
 
     private JFrame frame;
     private Decrypter decrypter;
+    private PerformanceTester tester;
 
-    public GUI(Decrypter decrypter) {
+    public GUI(Decrypter decrypter, PerformanceTester tester) {
         this.decrypter = decrypter;
+        this.tester = tester;
     }
 
     @Override
@@ -48,6 +51,13 @@ public class GUI implements Runnable {
         decrypt.addActionListener(listener);
         container.add(decrypt);
         container.add(output);
+        
+        TesterListener testerlistener = new TesterListener(this.tester, output);
+        
+        JButton tester = new JButton("Performance tests");
+        tester.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        tester.addActionListener(testerlistener);
+        container.add(tester);
 
         this.frame.pack();
         this.frame.setVisible(true);

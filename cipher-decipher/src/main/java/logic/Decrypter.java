@@ -85,7 +85,6 @@ public class Decrypter {
      * @return decrypted text
      */
     public String decrypt(String text) {
-        long start = System.currentTimeMillis();
         // cleanup text
         String modifiedText = text.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
         // prepare arrays and get character frequencies for ciphertext
@@ -94,21 +93,21 @@ public class Decrypter {
         formWordLists(modifiedText);
 
         // set the max amount of errors allowed in the text
-        double percentage = 0.03;
+        double percentage = 0;
         this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-        System.out.println("Max allowed errors " + this.maxErrors);
         int multiply = 1;
 
         // find decryption by going through word-arrays and changing letters in words with backtracking
         // increase amount of errors if no results - TODO: set some kind of limit here
         while (!findDecryption(0, 0, 0)) {
+            if (percentage == 0) {
+                percentage = 0.03;
+                this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+                continue;
+            }
             multiply++;
             this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
-            System.out.println("Max allowed errors " + this.maxErrors);
         }
-
-        long end = System.currentTimeMillis();
-        System.out.println("Elapsed Time in milliseconds: " + (end - start));
         return formResult(text);
     }
 
@@ -173,6 +172,15 @@ public class Decrypter {
         // sort words from longest to shortest to speed up decryption
         // this sorting trick from https://stackoverflow.com/questions/35866240/how-to-sort-string-array-by-length-using-arrays-sort
         Arrays.sort(this.cipherwords, (a, b) -> b.length() - a.length());
+        // check if text too long
+        if(this.cipherwords.length > 200) {
+            //create shorter array
+            String[] temp = new String[200];
+            for (int i = 0; i < temp.length; i++) {
+                temp[i] = this.cipherwords[i];
+            }
+            this.cipherwords = temp;
+        }
         // words-list has words where substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
