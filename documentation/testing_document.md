@@ -18,3 +18,6 @@ The tests for the decryption method will change because the algorithm is to be i
 ### Test coverage
 The current test coverage can be seen below:
 ![test_coverage](https://user-images.githubusercontent.com/73843204/161393751-b8be86a2-3ba3-4651-ac68-2b54d858b17c.png)
+
+### Performance testing
+Still work in progress!
