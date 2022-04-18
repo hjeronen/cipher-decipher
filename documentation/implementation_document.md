@@ -27,6 +27,8 @@ The userinterface is done with JavaFX and Swing because that seems to be the onl
 ## Possible flaws and improvements
 Determining error margin is a bit tricky - too large will cause decryption errors and too small will increase the decryption time. The amount of allowed errors is increased during execution, but this will need to be tuned.
 
+The program sometimes throws StackOverflowError, not sure why - of course for very long texts recursion would cause problems. Currently the size of the cipherwords array is limited (though not the length of the text) which helps, but sometimes the error still occurs. The text length probably needs to be downsized as well, not just the number of words.
+
 ## Sources
 * [Backtracking](https://en.wikipedia.org/wiki/Backtracking)
 * [Frequency Analysis](https://www.101computing.net/frequency-analysis/)
