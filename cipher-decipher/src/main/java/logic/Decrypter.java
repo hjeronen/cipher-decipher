@@ -13,6 +13,7 @@ import java.util.Scanner;
 public class Decrypter {
 
     private Trie dictionary;
+    private Sorter sorter;
 
     private double[] frequencies;
     private double[] cipherFrequencies;
@@ -35,6 +36,8 @@ public class Decrypter {
     // how many errors are allowed
     private int maxErrors;
 
+    private int maxTextLength;
+
     /**
      * Decrypter constructor. Also creates the dictionary and an array of the
      * typical frequencies of all letters.
@@ -44,6 +47,7 @@ public class Decrypter {
      */
     public Decrypter(String filename) {
         this.dictionary = new Trie();
+        this.sorter = new Sorter();
         createDictionary(filename);
         String abc = "abcdefghijklmnopqrstuvwxyz";
         double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9, 6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1, 5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
@@ -54,6 +58,7 @@ public class Decrypter {
         for (int i = 0; i < abc.length(); i++) {
             this.frequencies[abc.charAt(i)] = freq[i];
         }
+        this.maxTextLength = 3000;
     }
 
     /**
@@ -85,8 +90,13 @@ public class Decrypter {
      * @return decrypted text
      */
     public String decrypt(String text) {
+        //long start = System.currentTimeMillis();
         // cleanup text
         String modifiedText = text.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
+        //System.out.println(modifiedText);
+        if (modifiedText.isBlank()) {
+            return text;
+        }
         // prepare arrays and get character frequencies for ciphertext
         initializeArrays();
         findCharacterFrequencies(modifiedText);
@@ -95,19 +105,19 @@ public class Decrypter {
         // set the max amount of errors allowed in the text
         double percentage = 0;
         this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-        int multiply = 1;
+        int multiply = 0;
 
         // find decryption by going through word-arrays and changing letters in words with backtracking
         // increase amount of errors if no results - TODO: set some kind of limit here
         while (!findDecryption(0, 0, 0)) {
             if (percentage == 0) {
                 percentage = 0.03;
-                this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-                continue;
             }
             multiply++;
             this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
         }
+        //long stop = System.currentTimeMillis();
+        //System.out.println("time " + (stop - start));
         return formResult(text);
     }
 
@@ -167,25 +177,54 @@ public class Decrypter {
      * characters
      */
     public void formWordLists(String modifiedText) {
-        // cipherwords-list is for original ciphered words
-        this.cipherwords = modifiedText.split(" ");
-        // sort words from longest to shortest to speed up decryption
-        // this sorting trick from https://stackoverflow.com/questions/35866240/how-to-sort-string-array-by-length-using-arrays-sort
-        Arrays.sort(this.cipherwords, (a, b) -> b.length() - a.length());
         // check if text too long
-        if(this.cipherwords.length > 200) {
-            //create shorter array
-            String[] temp = new String[200];
+        if (modifiedText.length() > this.maxTextLength) {
+            this.cipherwords = downsizeText(modifiedText);
+        } else {
+            // cleaning out extra spaces
+            String[] temp = modifiedText.split(" ");
+            int count = 0;
+            // sort words from longest to shortest
+            this.sorter.sortWords(temp);
             for (int i = 0; i < temp.length; i++) {
-                temp[i] = this.cipherwords[i];
+                if (temp[i].equals("")) {
+                    break;
+                }
+                count++;
             }
-            this.cipherwords = temp;
+            // cipherwords-list is for original ciphered words
+            this.cipherwords = new String[count];
+            for (int i = 0; i < count; i++) {
+                this.cipherwords[i] = temp[i];
+            }
         }
         // words-list has words where substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
             this.words[i] = new StringBuilder(this.cipherwords[i]);
         }
+    }
+
+    public String[] downsizeText(String text) {
+        String[] temp = text.split(" ");
+        //Arrays.sort(temp, (a, b) -> b.length() - a.length());
+        this.sorter.sortWords(temp);
+        int length = 0;
+        int count = 0;
+        for (int i = 0; i < temp.length; i++) {
+            if (temp[i].equals("")) {
+                break;
+            }
+            if (length + temp[i].length() < this.maxTextLength) {
+                length += temp[i].length();
+                count++;
+            }
+        }
+        String[] result = new String[count];
+        for (int i = 0; i < count; i++) {
+            result[i] = temp[i];
+        }
+        return result;
     }
 
     /**

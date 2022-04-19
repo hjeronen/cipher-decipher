@@ -1,8 +1,6 @@
 package util;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -12,14 +10,18 @@ public class PerformanceTester {
 
     private Decrypter decrypter;
     private long[] runtimes100words;
+    private long[] runtimes500words;
     private long[] runtimes1000words;
+    private long[] runtimes5000words;
     private long[] runtimes10000words;
     private ArrayList<String> words;
 
     public PerformanceTester(Decrypter d) {
         this.decrypter = d;
         this.runtimes100words = new long[100];
+        this.runtimes500words = new long[100];
         this.runtimes1000words = new long[100];
+        this.runtimes5000words = new long[100];
         this.runtimes10000words = new long[100];
         this.words = new ArrayList<String>();
         getTestWords();
@@ -66,7 +68,9 @@ public class PerformanceTester {
 
     public void getAllRuntimes() {
         getTimes(this.runtimes100words, 100);
+        getTimes(this.runtimes500words, 500);
         getTimes(this.runtimes1000words, 1000);
+        getTimes(this.runtimes5000words, 5000);
         getTimes(this.runtimes10000words, 10000);
     }
 
@@ -82,7 +86,9 @@ public class PerformanceTester {
     public String toString() {
         String r = "";
         r += "100 words average time ms: " + getAverage(this.runtimes100words) + "\n";
+        r += "500 words average time ms: " + getAverage(this.runtimes500words) + "\n";
         r += "1000 words average time ms: " + getAverage(this.runtimes1000words) + "\n";
+        r += "5000 words average time ms: " + getAverage(this.runtimes5000words) + "\n";
         r += "10000 words average time ms: " + getAverage(this.runtimes10000words);
         return r;
     }
