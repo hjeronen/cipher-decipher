@@ -17,6 +17,7 @@ public class Decrypter {
 
     private double[] frequencies;
     private double[] cipherFrequencies;
+    private String cipherLetters;
 
     // what key values have been used
     private boolean[] taken;
@@ -50,7 +51,9 @@ public class Decrypter {
         this.sorter = new Sorter();
         createDictionary(filename);
         String abc = "abcdefghijklmnopqrstuvwxyz";
-        double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9, 6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1, 5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
+        double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9, 
+                                    6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1, 
+                                    5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
         this.frequencies = new double[128];
         for (int i = 0; i < this.frequencies.length; i++) {
             this.frequencies[i] = 200;
@@ -92,8 +95,10 @@ public class Decrypter {
     public String decrypt(String text) {
         //long start = System.currentTimeMillis();
         // cleanup text
-        String modifiedText = text.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
-        //System.out.println(modifiedText);
+        String modifiedText = text.replaceAll("\\R+", " ");
+        modifiedText = modifiedText.replaceAll("[0-9]", "");
+        modifiedText = modifiedText.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
+
         if (modifiedText.isBlank()) {
             return text;
         }
@@ -103,21 +108,27 @@ public class Decrypter {
         formWordLists(modifiedText);
 
         // set the max amount of errors allowed in the text
-        double percentage = 0;
+        double percentage = 0.05;
         this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-        int multiply = 0;
+        int multiply = 1;
 
         // find decryption by going through word-arrays and changing letters in words with backtracking
         // increase amount of errors if no results - TODO: set some kind of limit here
         while (!findDecryption(0, 0, 0)) {
-            if (percentage == 0) {
-                percentage = 0.03;
-            }
             multiply++;
             this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
         }
+
         //long stop = System.currentTimeMillis();
         //System.out.println("time " + (stop - start));
+        // check if unsibstituted characters
+        for (int i = 0; i < this.cipherLetters.length(); i++) {
+            if (!this.substituted[this.cipherLetters.charAt(i)]) {
+                this.substituted[this.cipherLetters.charAt(i)] = true;
+                double freq = this.cipherFrequencies[this.cipherLetters.charAt(i)];
+                this.substitutions[this.cipherLetters.charAt(i)] = getClosestAvailableKey(new char[1], freq);
+            }
+        }
         return formResult(text);
     }
 
@@ -150,7 +161,7 @@ public class Decrypter {
     public void findCharacterFrequencies(String modifiedText) {
         // find all unique letters in ciphertext, their counts and total amount of characters, excluding nonletters
         int[] counts = new int[128];
-        String cipherLetters = "";
+        this.cipherLetters = "";
         int total = 0;
         for (int i = 0; i < modifiedText.length(); i++) {
             if (modifiedText.charAt(i) == ' ') {
@@ -291,21 +302,17 @@ public class Decrypter {
         if (this.substituted[character]) {
             // change the cipher character to key value
             word.setCharAt(j, this.substitutions[character]);
-            // check if last character of the word
-            if (j == this.cipherwords[i].length() - 1) {
-                // need to do error check here incase all the characters of cipher word have been assigned a key value before
-                if (!findWord(this.words[i].toString())) {
-                    // if word was not found, check if error limit breaks
-                    if (errors + 1 <= this.maxErrors) {
-                        // if not over limit, increase amount of errors and continue to next word
+            // do error check here if beginning of the word
+            if (!findDecryption(j + 1, i, errors)) {
+                if (j == 0) {
+                    if (errors < this.maxErrors) {
                         return findDecryption(0, i + 1, errors + 1);
                     }
-                    // if there are too many errors, continue to next method call,
-                    // where full word is checked and since word is not found, return false
                 }
+                return false;
             }
-            // if not at end of word, or if word was found or there have been too many errors, continue
-            return findDecryption(j + 1, i, errors);
+
+            return true;
         }
 
         // character has not been assigned a key value, so mark it as substituted now
@@ -354,7 +361,7 @@ public class Decrypter {
 
         // check if first letter of the word
         if (j == 0) {
-            // if arrived here, means that no possible substitutions were found for any of the unsibstituted characters in the word
+            // if arrived here, means that no possible substitutions were found for any of the unsubstituted characters in the word
             // check how many errors
             if (errors + 1 <= this.maxErrors) {
                 // if not too many errors, mark word as error and move on to next word
