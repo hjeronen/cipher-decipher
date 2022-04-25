@@ -2,6 +2,8 @@
 
 The testing is done using JUnit and can be run from the IDE or from command line. Test coverage is monitored using Jacoco.
 
+## Unit tests
+
 ### Test input
 As for now, very short word lists are used as test input to check that forming the datastructure and using it works as inteded.
 
@@ -22,7 +24,7 @@ The tests for the decryption method will change because the algorithm is to be i
 The current test coverage can be seen below:
 ![test_coverage](https://user-images.githubusercontent.com/73843204/161393751-b8be86a2-3ba3-4651-ac68-2b54d858b17c.png)
 
-### Performance testing
+## Performance testing
 The performance tests are run for randomly formed ciphertexts of varying length or with increasing number of errors. All the words in the dictionary are loaded into a list, and a given number of words are then randomly chosen and combined as a test text that is then encrypted. The decryption time is then measured for the whole decryption function including the text preprosessing time. (I try to fix this later.)
 
 #### Running times for test texts without errors
