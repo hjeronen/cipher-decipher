@@ -15,9 +15,20 @@ When testing the decryption function, there are two possible decryptions for the
 
 The tests for the decryption method will change because the algorithm is to be improved later.
 
+#### Sorter
+(Coming soon!)
+
 ### Test coverage
 The current test coverage can be seen below:
 ![test_coverage](https://user-images.githubusercontent.com/73843204/161393751-b8be86a2-3ba3-4651-ac68-2b54d858b17c.png)
 
 ### Performance testing
-Still work in progress!
+The performance tests are run for randomly formed ciphertexts of varying length or with increasing number of errors. All the words in the dictionary are loaded into a list, and a given number of words are then randomly chosen and combined as a test text that is then encrypted. The decryption time is then measured for the whole decryption function including the text preprosessing time. (I try to fix this later.)
+
+#### Running times for test texts without errors
+(chart here)
+The maximum length of text that is handled in the recursive function is 2000 characters. Therefore the time the recursive decryption function uses should not increase that much with longer texts. The sorting function's time complexity is O(n log n), however, which will increase the preprocessing time for longer texts. This propably explains why performance time is pretty much the same for 100-1000 words but starts to increase with 5000 and 10000 words.
+
+#### Running times for test texts with errors
+(chart here)
+All the texts used in the test have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. The error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 1-10 characters. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is repeated 10 times for each instance (I will try to run more tests but these take forever...).
