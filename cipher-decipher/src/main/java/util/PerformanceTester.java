@@ -32,11 +32,11 @@ public class PerformanceTester {
         this.runtimes5000words = new long[100];
         this.runtimes10000words = new long[100];
         
-        this.runtimes0Errors = new long[100];
-        this.runtimes5Errors = new long[100];
-        this.runtimes10Errors = new long[100];
-        this.runtimes15Errors = new long[100];
-        this.runtimes20Errors = new long[100];
+        this.runtimes0Errors = new long[10];
+        this.runtimes5Errors = new long[10];
+        this.runtimes10Errors = new long[10];
+        this.runtimes15Errors = new long[10];
+        this.runtimes20Errors = new long[10];
         
         this.words = new ArrayList<String>();
         getTestWords();
@@ -85,12 +85,11 @@ public class PerformanceTester {
             text += errorWord;
             text += " ";
         }
-        System.out.println(text);
         return crypter.encrypt(text);
     }
 
     public void getTimes(long[] times, int words) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < times.length; i++) {
             String cipher = formCipherText(words);
             long start = System.currentTimeMillis();
             String text = this.decrypter.decrypt(cipher);
@@ -100,7 +99,7 @@ public class PerformanceTester {
     }
     
     public void getTimesWithErrors(long[] times, int words, int errors) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < times.length; i++) {
             String cipher = formCipherTextWithErrors(words, errors);
             long start = System.currentTimeMillis();
             String text = this.decrypter.decrypt(cipher);
@@ -111,11 +110,11 @@ public class PerformanceTester {
 
     public void getAllRuntimes() {
         // runtimes when all words are found in the dictionary
-//        getTimes(this.runtimes100words, 100);
-//        getTimes(this.runtimes500words, 500);
-//        getTimes(this.runtimes1000words, 1000);
-//        getTimes(this.runtimes5000words, 5000);
-//        getTimes(this.runtimes10000words, 10000);
+        getTimes(this.runtimes100words, 100);
+        getTimes(this.runtimes500words, 500);
+        getTimes(this.runtimes1000words, 1000);
+        getTimes(this.runtimes5000words, 5000);
+        getTimes(this.runtimes10000words, 10000);
         
         // runtimes with randomly formed error words
         System.out.println("0 errors");
