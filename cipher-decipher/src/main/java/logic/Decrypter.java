@@ -38,6 +38,9 @@ public class Decrypter {
     private int maxErrors;
 
     private int maxTextLength;
+    
+    // in which word some character first appears
+    private int[] firstAppearances;
 
     /**
      * Decrypter constructor. Also creates the dictionary and an array of the
@@ -51,9 +54,9 @@ public class Decrypter {
         this.sorter = new Sorter();
         createDictionary(filename);
         String abc = "abcdefghijklmnopqrstuvwxyz";
-        double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9, 
-                                    6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1, 
-                                    5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
+        double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9,
+            6.8, 0.2, 0.8, 3.9, 2.3, 6.5, 7.2, 1.8, 0.1,
+            5.8, 6.1, 8.8, 2.7, 1.0, 2.3, 0.2, 1.9, 1.0};
         this.frequencies = new double[128];
         for (int i = 0; i < this.frequencies.length; i++) {
             this.frequencies[i] = 200;
@@ -61,7 +64,7 @@ public class Decrypter {
         for (int i = 0; i < abc.length(); i++) {
             this.frequencies[abc.charAt(i)] = freq[i];
         }
-        this.maxTextLength = 3000;
+        this.maxTextLength = 2000;
     }
 
     /**
@@ -108,20 +111,23 @@ public class Decrypter {
         formWordLists(modifiedText);
 
         // set the max amount of errors allowed in the text
-        double percentage = 0.05;
+        double percentage = 0;
         this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-        int multiply = 1;
+        int multiply = 0;
 
         // find decryption by going through word-arrays and changing letters in words with backtracking
         // increase amount of errors if no results - TODO: set some kind of limit here
         while (!findDecryption(0, 0, 0)) {
+            if (percentage == 0) {
+                percentage = 0.05;
+            }
             multiply++;
             this.maxErrors = (int) Math.floor(this.cipherwords.length * (percentage * multiply));
         }
 
         //long stop = System.currentTimeMillis();
         //System.out.println("time " + (stop - start));
-        // check if unsibstituted characters
+        // check if unsubstituted characters
         for (int i = 0; i < this.cipherLetters.length(); i++) {
             if (!this.substituted[this.cipherLetters.charAt(i)]) {
                 this.substituted[this.cipherLetters.charAt(i)] = true;
@@ -142,10 +148,12 @@ public class Decrypter {
         // for checking which characters have been substituted and with what
         this.substituted = new boolean[128];
         this.substitutions = new char[128];
+        this.firstAppearances = new int[128];
         for (int i = 0; i < this.taken.length; i++) {
             this.taken[i] = false;
             this.substituted[i] = false;
             this.substitutions[i] = '*';
+            this.firstAppearances[i] = 0;
         }
         // for saving the frequencies of the cipher text characters
         this.cipherFrequencies = new double[128];
@@ -192,7 +200,7 @@ public class Decrypter {
         if (modifiedText.length() > this.maxTextLength) {
             this.cipherwords = downsizeText(modifiedText);
         } else {
-            // cleaning out extra spaces
+            // cleaning out extra spaces and duplicate words
             String[] temp = modifiedText.split(" ");
             int count = 0;
             // sort words from longest to shortest
@@ -201,14 +209,30 @@ public class Decrypter {
                 if (temp[i].equals("")) {
                     break;
                 }
+                if (i > 0 && temp[i].equals(temp[i - 1])) {
+                    continue;
+                }
+
                 count++;
             }
             // cipherwords-list is for original ciphered words
             this.cipherwords = new String[count];
-            for (int i = 0; i < count; i++) {
-                this.cipherwords[i] = temp[i];
+            int index = 0;
+            for (int i = 0; i < temp.length; i++) {
+                if (index >= count) {
+                    break;
+                }
+                if (temp[i].equals("")) {
+                    break;
+                }
+                if (i > 0 && temp[i].equals(temp[i - 1])) {
+                    continue;
+                }
+                this.cipherwords[index] = temp[i];
+                index++;
             }
         }
+
         // words-list has words where substitutions are tried on
         this.words = new StringBuilder[this.cipherwords.length];
         for (int i = 0; i < this.cipherwords.length; i++) {
@@ -218,7 +242,6 @@ public class Decrypter {
 
     public String[] downsizeText(String text) {
         String[] temp = text.split(" ");
-        //Arrays.sort(temp, (a, b) -> b.length() - a.length());
         this.sorter.sortWords(temp);
         int length = 0;
         int count = 0;
@@ -226,14 +249,31 @@ public class Decrypter {
             if (temp[i].equals("")) {
                 break;
             }
+            if (i > 0 && temp[i].equals(temp[i - 1])) {
+                continue;
+            }
+
             if (length + temp[i].length() < this.maxTextLength) {
                 length += temp[i].length();
                 count++;
+            } else {
+                break;
             }
         }
         String[] result = new String[count];
-        for (int i = 0; i < count; i++) {
-            result[i] = temp[i];
+        int index = 0;
+        for (int i = 0; i < temp.length; i++) {
+            if (index >= count) {
+                break;
+            }
+            if (temp[i].equals("")) {
+                break;
+            }
+            if (i > 0 && temp[i].equals(temp[i - 1])) {
+                continue;
+            }
+            result[index] = temp[i];
+            index++;
         }
         return result;
     }
@@ -289,6 +329,9 @@ public class Decrypter {
             if (findWord(this.words[i].toString())) {
                 return findDecryption(0, i + 1, errors);
             }
+            if (errors + 1 <= this.maxErrors) {
+                return findDecryption(0, i + 1, errors + 1);
+            }
             // else return false - cannot handle errors here, need to try all possible substitutions before marking as error
             return false;
         }
@@ -302,21 +345,12 @@ public class Decrypter {
         if (this.substituted[character]) {
             // change the cipher character to key value
             word.setCharAt(j, this.substitutions[character]);
-            // do error check here if beginning of the word
-            if (!findDecryption(j + 1, i, errors)) {
-                if (j == 0) {
-                    if (errors < this.maxErrors) {
-                        return findDecryption(0, i + 1, errors + 1);
-                    }
-                }
-                return false;
-            }
-
-            return true;
+            return findDecryption(j + 1, i, errors);
         }
 
         // character has not been assigned a key value, so mark it as substituted now
         this.substituted[character] = true;
+        this.firstAppearances[character] = i;
         // form list for key values that have been tried
         char[] used = new char[26];
         // mark the free spot in list
@@ -359,8 +393,14 @@ public class Decrypter {
         // no key value found for the character
         this.substitutions[character] = '*';
 
-        // check if first letter of the word
-        if (j == 0) {
+        // check if first unchanged letter of the word
+        int earliestChanged = 0;
+        for (int z = cipher.length() - 1; z >= 0; z--) {
+            if (this.firstAppearances[cipher.charAt(z)] == i) {
+                earliestChanged = z;
+            }
+        }
+        if (j == earliestChanged) {
             // if arrived here, means that no possible substitutions were found for any of the unsubstituted characters in the word
             // check how many errors
             if (errors + 1 <= this.maxErrors) {
