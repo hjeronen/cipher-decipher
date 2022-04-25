@@ -13,7 +13,7 @@ import java.util.Scanner;
 public class Decrypter {
 
     private Trie dictionary;
-    private Sorter sorter;
+    private TextHandler texthandler;
 
     private double[] frequencies;
     private double[] cipherFrequencies;
@@ -51,7 +51,7 @@ public class Decrypter {
      */
     public Decrypter(String filename) {
         this.dictionary = new Trie();
-        this.sorter = new Sorter();
+        this.texthandler = new TextHandler();
         createDictionary(filename);
         String abc = "abcdefghijklmnopqrstuvwxyz";
         double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9,
@@ -98,16 +98,16 @@ public class Decrypter {
     public String decrypt(String text) {
         //long start = System.currentTimeMillis();
         // cleanup text
-        String modifiedText = text.replaceAll("\\R+", " ");
-        modifiedText = modifiedText.replaceAll("[0-9]", "");
-        modifiedText = modifiedText.toLowerCase().replaceAll("[^a-zA-Z\\d\\s:]", "");
-
+        String modifiedText = this.texthandler.cleanText(text);
+        // if no translatable content just return text
         if (modifiedText.isBlank()) {
             return text;
         }
-        // prepare arrays and get character frequencies for ciphertext
+        // get all different characters used in the text
+        this.cipherLetters = this.texthandler.getAllUsedCharacters(modifiedText);
+        // prepare arrays, get character frequencies for ciphertext and form word lists
         initializeArrays();
-        findCharacterFrequencies(modifiedText);
+        this.texthandler.findCharacterFrequencies(modifiedText, this.cipherFrequencies);
         formWordLists(modifiedText);
 
         // set the max amount of errors allowed in the text
@@ -128,13 +128,8 @@ public class Decrypter {
         //long stop = System.currentTimeMillis();
         //System.out.println("time " + (stop - start));
         // check if unsubstituted characters
-        for (int i = 0; i < this.cipherLetters.length(); i++) {
-            if (!this.substituted[this.cipherLetters.charAt(i)]) {
-                this.substituted[this.cipherLetters.charAt(i)] = true;
-                double freq = this.cipherFrequencies[this.cipherLetters.charAt(i)];
-                this.substitutions[this.cipherLetters.charAt(i)] = getClosestAvailableKey(new char[1], freq);
-            }
-        }
+        checkForUnsubstitutedCharacters();
+        
         return formResult(text);
     }
 
@@ -160,37 +155,9 @@ public class Decrypter {
     }
 
     /**
-     * Get cipher text's character frequencies. Saves the frequencies in
-     * this.cipherFrequencies array at the place of the character in question.
-     *
-     * @param modifiedText ciphered text in lower case and without special
-     * characters
-     */
-    public void findCharacterFrequencies(String modifiedText) {
-        // find all unique letters in ciphertext, their counts and total amount of characters, excluding nonletters
-        int[] counts = new int[128];
-        this.cipherLetters = "";
-        int total = 0;
-        for (int i = 0; i < modifiedText.length(); i++) {
-            if (modifiedText.charAt(i) == ' ') {
-                continue;
-            }
-            total++;
-            if (!cipherLetters.contains("" + modifiedText.charAt(i))) {
-                cipherLetters += modifiedText.charAt(i);
-            }
-            counts[modifiedText.charAt(i)] += 1;
-        }
-
-        // save ciphertext's character frequencies
-        for (int i = 0; i < cipherLetters.length(); i++) {
-            this.cipherFrequencies[cipherLetters.charAt(i)] = (double) counts[cipherLetters.charAt(i)] / total * 100;
-        }
-    }
-
-    /**
      * Form word lists. Save the words in the cipher text into an array and sort
-     * by length in descending order.
+     * by length in descending order. Cipherwords are copied to StringBuilder array
+     * where substitutions are tried.
      *
      * @param modifiedText ciphered text in lower case and without special
      * characters
@@ -198,84 +165,21 @@ public class Decrypter {
     public void formWordLists(String modifiedText) {
         // check if text too long
         if (modifiedText.length() > this.maxTextLength) {
-            this.cipherwords = downsizeText(modifiedText);
+            this.cipherwords = this.texthandler.downsizeText(modifiedText, this.maxTextLength);
         } else {
-            // cleaning out extra spaces and duplicate words
-            String[] temp = modifiedText.split(" ");
-            int count = 0;
-            // sort words from longest to shortest
-            this.sorter.sortWords(temp);
-            for (int i = 0; i < temp.length; i++) {
-                if (temp[i].equals("")) {
-                    break;
-                }
-                if (i > 0 && temp[i].equals(temp[i - 1])) {
-                    continue;
-                }
-
-                count++;
-            }
-            // cipherwords-list is for original ciphered words
-            this.cipherwords = new String[count];
-            int index = 0;
-            for (int i = 0; i < temp.length; i++) {
-                if (index >= count) {
-                    break;
-                }
-                if (temp[i].equals("")) {
-                    break;
-                }
-                if (i > 0 && temp[i].equals(temp[i - 1])) {
-                    continue;
-                }
-                this.cipherwords[index] = temp[i];
-                index++;
-            }
+            this.cipherwords = this.texthandler.getWordListString(modifiedText);
         }
-
-        // words-list has words where substitutions are tried on
-        this.words = new StringBuilder[this.cipherwords.length];
-        for (int i = 0; i < this.cipherwords.length; i++) {
-            this.words[i] = new StringBuilder(this.cipherwords[i]);
-        }
+        this.words = this.texthandler.copyWordListToStringBuilder(this.cipherwords);
     }
-
-    public String[] downsizeText(String text) {
-        String[] temp = text.split(" ");
-        this.sorter.sortWords(temp);
-        int length = 0;
-        int count = 0;
-        for (int i = 0; i < temp.length; i++) {
-            if (temp[i].equals("")) {
-                break;
-            }
-            if (i > 0 && temp[i].equals(temp[i - 1])) {
-                continue;
-            }
-
-            if (length + temp[i].length() < this.maxTextLength) {
-                length += temp[i].length();
-                count++;
-            } else {
-                break;
+    
+    public void checkForUnsubstitutedCharacters() {
+        for (int i = 0; i < this.cipherLetters.length(); i++) {
+            if (!this.substituted[this.cipherLetters.charAt(i)]) {
+                this.substituted[this.cipherLetters.charAt(i)] = true;
+                double freq = this.cipherFrequencies[this.cipherLetters.charAt(i)];
+                this.substitutions[this.cipherLetters.charAt(i)] = getClosestAvailableKey(new char[1], freq);
             }
         }
-        String[] result = new String[count];
-        int index = 0;
-        for (int i = 0; i < temp.length; i++) {
-            if (index >= count) {
-                break;
-            }
-            if (temp[i].equals("")) {
-                break;
-            }
-            if (i > 0 && temp[i].equals(temp[i - 1])) {
-                continue;
-            }
-            result[index] = temp[i];
-            index++;
-        }
-        return result;
     }
 
     /**
@@ -328,6 +232,11 @@ public class Decrypter {
             // if word is found, move forward
             if (findWord(this.words[i].toString())) {
                 return findDecryption(0, i + 1, errors);
+            }
+            for (int z = 0; z < this.cipherwords[i].length(); z++) {
+                if (this.firstAppearances[this.cipherwords[i].charAt(z)] == i) {
+                    return false;
+                }
             }
             if (errors + 1 <= this.maxErrors) {
                 return findDecryption(0, i + 1, errors + 1);
