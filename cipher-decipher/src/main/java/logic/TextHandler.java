@@ -1,5 +1,9 @@
 package logic;
 
+/**
+ * A class for text handling (clean out non-letter characters, form word arrays
+ * etc.)
+ */
 public class TextHandler {
 
     private Sorter sorter;
@@ -16,36 +20,40 @@ public class TextHandler {
     }
 
     /**
-     * Get cipher text's character frequencies. Saves the frequencies in
-     * this.cipherFrequencies array at the place of the character in question.
+     * Get character frequencies in a text. Saves the frequencies in the
+     * frequencies array at the place of the character in question.
      *
-     * @param text ciphered text in lower case and without special characters
+     * @param text text in lower case and without special characters
+     * @param frequencies array where character frequencies are saved
      */
-    public void findCharacterFrequencies(String text, double[] cipherFrequencies) {
-        // find all unique letters in ciphertext, their counts and total amount of characters, excluding nonletters
+    public void findCharacterFrequencies(String text, double[] frequencies) {
+        // find all unique characters in text, their counts and total amount of characters, excluding spaces
         int[] counts = new int[128];
-        String cipherLetters = "";
+        String characters = "";
         int total = 0;
         for (int i = 0; i < text.length(); i++) {
             if (text.charAt(i) == ' ') {
                 continue;
             }
             total++;
-            if (!cipherLetters.contains("" + text.charAt(i))) {
-                cipherLetters += text.charAt(i);
+            if (!characters.contains("" + text.charAt(i))) {
+                characters += text.charAt(i);
             }
             counts[text.charAt(i)] += 1;
         }
 
         // save ciphertext's character frequencies
-        for (int i = 0; i < cipherLetters.length(); i++) {
-            cipherFrequencies[cipherLetters.charAt(i)] = (double) counts[cipherLetters.charAt(i)] / total * 100;
+        for (int i = 0; i < characters.length(); i++) {
+            frequencies[characters.charAt(i)] = (double) counts[characters.charAt(i)] / total * 100;
         }
     }
 
     public String getAllUsedCharacters(String text) {
         String characters = "";
         for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == ' ') {
+                continue;
+            }
             if (!characters.contains("" + text.charAt(i))) {
                 characters += text.charAt(i);
             }
@@ -53,11 +61,12 @@ public class TextHandler {
         return characters;
     }
 
-    public String[] getWordListString(String text) {
+    public String[] getWordListString(String text, int maxTextLength) {
         String[] temp = text.split(" ");
         // sort words alphabetically and from longest to shortest
         this.sorter.sortWords(temp);
         // cleaning out extra spaces and duplicate words
+        int length = 0;
         int count = 0;
         for (int i = 0; i < temp.length; i++) {
             if (temp[i].equals("")) {
@@ -66,7 +75,12 @@ public class TextHandler {
             if (i > 0 && temp[i].equals(temp[i - 1])) {
                 continue;
             }
-            count++;
+            if (length + temp[i].length() <= maxTextLength) {
+                length += temp[i].length();
+                count++;
+            } else {
+                break;
+            }
         }
         // the returned wordlist
         String[] words = new String[count];
@@ -96,42 +110,33 @@ public class TextHandler {
         return words;
     }
 
-    public String[] downsizeText(String text, int maxTextLength) {
-        String[] temp = text.split(" ");
-        this.sorter.sortWords(temp);
-        int length = 0;
-        int count = 0;
-        for (int i = 0; i < temp.length; i++) {
-            if (temp[i].equals("")) {
-                break;
-            }
-            if (i > 0 && temp[i].equals(temp[i - 1])) {
+    /**
+     * Form result text. Change the original ciphered characters into the found
+     * key values.
+     *
+     * @param text original ciphered text
+     * @return text with ciphered characters changed to key values
+     */
+    public String formResult(String text, char[] substitutions) {
+        String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        String resultText = "";
+        for (int i = 0; i < text.length(); i++) {
+            // non-letters are added as they are
+            if (!abc.contains("" + text.charAt(i))) {
+                resultText += text.charAt(i);
                 continue;
             }
-
-            if (length + temp[i].length() < maxTextLength) {
-                length += temp[i].length();
-                count++;
-            } else {
-                break;
-            }
-        }
-
-        String[] result = new String[count];
-        int index = 0;
-        for (int i = 0; i < temp.length; i++) {
-            if (index >= count) {
-                break;
-            }
-            if (temp[i].equals("")) {
-                break;
-            }
-            if (i > 0 && temp[i].equals(temp[i - 1])) {
+            // ciphered character
+            char character = text.charAt(i);
+            // for uppercase characters, change key to uppercase too (keys are saved in and for lower case)
+            if (Character.isUpperCase(character)) {
+                char c = substitutions[Character.toLowerCase(character)];
+                resultText += Character.toUpperCase(c);
                 continue;
             }
-            result[index] = temp[i];
-            index++;
+            // add into result text the key for character
+            resultText += substitutions[character];
         }
-        return result;
+        return resultText;
     }
 }

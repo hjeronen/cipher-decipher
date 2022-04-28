@@ -71,14 +71,6 @@ public class DecrypterTest {
     }
 
     @Test
-    public void removingAllNonLettersWorks() {
-        String test = "F'rom´ *this* stri%ng #all (special) ch&aracters/ [should] =be @removed+?";
-        String modified = test.replaceAll("[^a-zA-Z\\d\\s:]", "");
-        String expected = "From this string all special characters should be removed";
-        assertEquals(modified, expected);
-    }
-
-    @Test
     public void specialChracatersAreIgnored() {
         String test = "t*if(m)&%#m+?!";
         String expected = "s*he(l)&%#l+?!";

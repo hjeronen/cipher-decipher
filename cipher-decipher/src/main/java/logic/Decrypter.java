@@ -24,23 +24,20 @@ public class Decrypter {
 
     // what cipherletters have been changed
     private boolean[] substituted;
-
     // what a certain char has been substituted with
     private char[] substitutions;
+    // in which word some character first appears
+    private int[] firstAppearances;
 
     // arrays for cipherwords
-    // changing
-    private StringBuilder[] words;
-    // original
     private String[] cipherwords;
+    private StringBuilder[] words;
+    
 
     // how many errors are allowed
     private int maxErrors;
-
+    // max length for ciphertext
     private int maxTextLength;
-    
-    // in which word some character first appears
-    private int[] firstAppearances;
 
     /**
      * Decrypter constructor. Also creates the dictionary and an array of the
@@ -130,7 +127,7 @@ public class Decrypter {
         // check if unsubstituted characters
         checkForUnsubstitutedCharacters();
         
-        return formResult(text);
+        return this.texthandler.formResult(text, this.substitutions);
     }
 
     /**
@@ -155,20 +152,14 @@ public class Decrypter {
     }
 
     /**
-     * Form word lists. Save the words in the cipher text into an array and sort
-     * by length in descending order. Cipherwords are copied to StringBuilder array
-     * where substitutions are tried.
+     * Form word lists. Save the words in the cipher text into an array. 
+     * Ciphered words are copied to StringBuilder array where substitutions are tried.
      *
      * @param modifiedText ciphered text in lower case and without special
      * characters
      */
     public void formWordLists(String modifiedText) {
-        // check if text too long
-        if (modifiedText.length() > this.maxTextLength) {
-            this.cipherwords = this.texthandler.downsizeText(modifiedText, this.maxTextLength);
-        } else {
-            this.cipherwords = this.texthandler.getWordListString(modifiedText);
-        }
+        this.cipherwords = this.texthandler.getWordListString(modifiedText, this.maxTextLength);
         this.words = this.texthandler.copyWordListToStringBuilder(this.cipherwords);
     }
     
@@ -180,36 +171,6 @@ public class Decrypter {
                 this.substitutions[this.cipherLetters.charAt(i)] = getClosestAvailableKey(new char[1], freq);
             }
         }
-    }
-
-    /**
-     * Form result text. Change the original ciphered characters into the found
-     * key values.
-     *
-     * @param text original ciphered text
-     * @return text with ciphered characters changed to key values
-     */
-    public String formResult(String text) {
-        String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        String resultText = "";
-        for (int i = 0; i < text.length(); i++) {
-            // non-letters are added as they are
-            if (!abc.contains("" + text.charAt(i))) {
-                resultText += text.charAt(i);
-                continue;
-            }
-            // ciphered character
-            char character = text.charAt(i);
-            // for uppercase characters, change key to uppercase too (keys are saved in and for lower case)
-            if (Character.isUpperCase(character)) {
-                char c = this.substitutions[Character.toLowerCase(character)];
-                resultText += Character.toUpperCase(c);
-                continue;
-            }
-            // add into result text the key for character
-            resultText += this.substitutions[character];
-        }
-        return resultText;
     }
 
     /**
@@ -227,12 +188,14 @@ public class Decrypter {
         if (i == this.cipherwords.length) {
             return true;
         }
-        // check if at end of word
+        // check if at end of wordlist
         if (j == this.cipherwords[i].length()) {
             // if word is found, move forward
             if (findWord(this.words[i].toString())) {
                 return findDecryption(0, i + 1, errors);
             }
+            // if all the characters were changed before this word, mark as error
+            // else return false
             for (int z = 0; z < this.cipherwords[i].length(); z++) {
                 if (this.firstAppearances[this.cipherwords[i].charAt(z)] == i) {
                     return false;
@@ -241,7 +204,7 @@ public class Decrypter {
             if (errors + 1 <= this.maxErrors) {
                 return findDecryption(0, i + 1, errors + 1);
             }
-            // else return false - cannot handle errors here, need to try all possible substitutions before marking as error
+
             return false;
         }
         // save the word where substitutions are made and the original ciphered word
@@ -252,35 +215,29 @@ public class Decrypter {
 
         // check if character has already been assigned a key value
         if (this.substituted[character]) {
-            // change the cipher character to key value
-            word.setCharAt(j, this.substitutions[character]);
+            word.setCharAt(j, this.substitutions[character]); // change the cipher character to key value
             return findDecryption(j + 1, i, errors);
         }
 
         // character has not been assigned a key value, so mark it as substituted now
         this.substituted[character] = true;
         this.firstAppearances[character] = i;
-        // form list for key values that have been tried
-        char[] used = new char[26];
-        // mark the free spot in list
+        // form list for key values that have been tried, remember available slot
+        char[] testedKeys = new char[26];
         int index = 0;
-        // get the frequency of the ciphered character
-        double freq = this.cipherFrequencies[character];
-        // find a key value that is available and that has the closest frequency
-        char key = getClosestAvailableKey(used, freq);
+        
+        double freq = this.cipherFrequencies[character]; // get the frequency of the ciphered character
+        char key = getClosestAvailableKey(testedKeys, freq); // find a key value that is available and that has the closest frequency
 
         // while there are available key values that have not been tried (empty char means out of keys)
         while (key != ' ') {
-            // mark key value as taken
-            this.taken[key] = true;
-            // remember that character was substituted with this key
-            this.substitutions[character] = key;
-            // remember which keys have been tried
-            used[index] = key;
-            // mark next free spot in used keys list
-            index++;
-            // change the ciphered character in word to key
-            word.setCharAt(j, key);
+            this.taken[key] = true; // mark key value as taken
+            this.substitutions[character] = key; // remember that character was substituted with this key
+            
+            testedKeys[index] = key; // remember which keys have been tried
+            index++; // mark next free spot in tested keys list
+            
+            word.setCharAt(j, key); // change the ciphered character in word to key
 
             // check if looks reasonable and move to next character
             if (findSubstring(word.substring(0, j + 1))) {
@@ -289,18 +246,14 @@ public class Decrypter {
                 }
             }
 
-            // substring was not found, so possibly not working substitution
-            // free key
-            this.taken[key] = false;
-            // find next closest key
-            key = getClosestAvailableKey(used, freq);
+            // key was not a good substitution
+            this.taken[key] = false; // free key
+            key = getClosestAvailableKey(testedKeys, freq); // find next closest key
         }
-        // no possible substitutions found, so return ciphered character to original
-        word.setCharAt(j, character);
-        // mark character as unsubstituted
-        this.substituted[character] = false;
-        // no key value found for the character
-        this.substitutions[character] = '*';
+        
+        word.setCharAt(j, character); // no possible substitutions found, so return ciphered character to original
+        this.substituted[character] = false; // mark character as unsubstituted
+        this.substitutions[character] = '*'; // no key value found for the character
 
         // check if first unchanged letter of the word
         int earliestChanged = 0;
@@ -313,11 +266,10 @@ public class Decrypter {
             // if arrived here, means that no possible substitutions were found for any of the unsubstituted characters in the word
             // check how many errors
             if (errors + 1 <= this.maxErrors) {
-                // if not too many errors, mark word as error and move on to next word
-                return findDecryption(0, i + 1, errors + 1);
+                return findDecryption(0, i + 1, errors + 1); // if not too many errors, mark word as error and move on to next word
             }
         }
-        // if not back at the beginning of the word or if too many errors, return back to previous point in recursion
+        // if not at the earliest changed character or if too many errors, return back to previous point in recursion
         return false;
     }
 
