@@ -1,10 +1,6 @@
 
 package util;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -14,22 +10,6 @@ public class CrypterTest {
     
     public CrypterTest() {
         this.crypter = new Crypter();
-    }
-    
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
     }
     
     @Test
@@ -58,6 +38,6 @@ public class CrypterTest {
     public void encryptReturnsSomethingElseThanTheOriginalText() {
         String text = "This is a simple test text.";
         String encryption = this.crypter.encrypt(text);
-        assertNotEquals(text, encryption);
+        assertNotEquals(text.toUpperCase(), encryption);
     }
 }

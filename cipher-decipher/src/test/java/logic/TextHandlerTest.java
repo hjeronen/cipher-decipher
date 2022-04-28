@@ -2,6 +2,7 @@
 package logic;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -54,7 +55,7 @@ public class TextHandlerTest {
     }
     
     @Test
-    public void getWordListStringReturnsAnOrderedListOfWords() {
+    public void getWordListStringReturnsAnOrderedListOfAllWords() {
         String text = "this is a simple test text";
         String[] list = this.texthandler.getWordListString(text, 2000);
         assertEquals("simple", list[0]);
@@ -70,6 +71,24 @@ public class TextHandlerTest {
         String text = "this is a simple test text";
         String[] list = this.texthandler.getWordListString(text, 10);
         assertTrue(list.length == 2);
+    }
+    
+    @Test
+    public void getWordListStringLeavesOutDuplicateWords() {
+        String text = "string with same words over and over and over again";
+        String[] list = this.texthandler.getWordListString(text, 200);
+        
+        assertTrue(list.length == 7);
+        assertNotEquals(list[list.length - 1], list[list.length - 2]);
+    }
+    
+    @Test
+    public void getWordListStringExcludesExtraSpaces() {
+        String text = "string with     extra     spaces";
+        String[] list = this.texthandler.getWordListString(text, 200);
+        
+        assertTrue(list.length == 4);
+        assertNotEquals("", list[list.length - 1]);
     }
     
     @Test
