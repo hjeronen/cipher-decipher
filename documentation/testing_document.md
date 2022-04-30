@@ -1,6 +1,8 @@
 # Testing Document
 
-The testing is done using JUnit and can be run from the IDE or from command line. Test coverage is monitored using Jacoco.
+The unit testing is done using JUnit and can be run from the IDE or from command line. Test coverage is monitored using Jacoco.
+
+The performance tests are done with the class PerformanceTester, and they can only be run from the GUI by pressing the button 'Performance tests'. The results are printed in the output text field. Running these will take 45 minutes.
 
 ## Unit tests
 
@@ -40,12 +42,36 @@ The current test coverage can be seen below:
 The coverage for util package is not very high because the PerformanceTester class is not tested.
 
 ## Performance testing
-The performance tests are run for randomly formed ciphertexts of varying length or with increasing number of errors. All the words in the dictionary are loaded into a list, and a given number of words are then randomly chosen and combined as a test text that is then encrypted. The decryption time is then measured for the whole decryption function including the text preprosessing time. (I try to fix this later.)
+The performance tests are run on an `AMD Ryzen 9 5900X` CPU with 32GB of RAM. The times are measured in milliseconds.
+
+The tests are run for randomly formed ciphertexts of varying length or with increasing number of errors. All the words in the dictionary are loaded into a list, and a given number of words are then randomly chosen and combined as a test text that is then encrypted. The decryption time is then measured for the whole decryption function including the text preprosessing time. (I try to fix this later.)
+
+Because the decryption time depends not only on the amount of error words but also on the length of the words, and since the words are picked at random for test texts, there is actually a lot of variance in how long it will take to decrypt a cipher text. For texts with only very short words the time will be longer than for texts with very long words. Also with texts where there are a lot of error words and these are all either very long or very short, the decryption time will be long. When there are very long words and zero or very few error words of medium length, the decryption time can be very fast.
 
 #### Running times for test texts without errors
-(chart here)
+````````````````````````````````````````````
+When all words are found in the dictionary:
+100 words average time ms: 233
+500 words average time ms: 199
+1000 words average time ms: 242
+5000 words average time ms: 389
+10000 words average time ms: 780
+````````````````````````````````````````````
 The maximum length of text that is handled in the recursive function is 2000 characters. Therefore the time the recursive decryption function uses should not increase that much with longer texts. The sorting function's time complexity is O(n log n), however, which will increase the preprocessing time for longer texts. This propably explains why performance time is pretty much the same for 100-1000 words but starts to increase with 5000 and 10000 words.
 
 #### Running times for test texts with errors
-(chart here)
-All the texts used in the test have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. The error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 1-10 characters. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is repeated 10 times for each instance (I will try to run more tests but these take forever...).
+``````````````````````````````````````````
+Average run times for texts with errors:
+0 errors average time ms: 223
+5 errors average time ms: 1014
+10 errors average time ms: 1764
+15 errors average time ms: 10590
+20 errors average time ms: 12033
+``````````````````````````````````````````
+All the texts with errors used in the tests have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. An error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 5-10 characters (this is also determined randomly) - I thought this would be a good approximation of general cases. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is repeated 100 times for each instance (with a new random text formed for every decryption).
+
+The number of errors increases performance time, but this depends largely on what kind of words there are, very short or very long, whether they are erroneous or not. If all the error words are long and at the beginning of the word array where the decryption starts, or if the error words are very short and at the end of the word array, the decryption time might be very long. For some text with more errors the decryption time might actually be shorter than for some other text with fewer errors, depending on how error words are distributed among normal words (when sorted by length).
+
+In the results above there does not seem to be that big of a difference between 5 and 10 error words (2.5 % and 5 % of all words) or 15 and 20 error words (7.5 % and 10 % of all words). This is probably due to how the error margin is adjusted, since it is 0 % at first, and then increased by 5 % each time until a succesful translation is found. This will be changed, so these results are not yet final.
+
+The dictionary that is used is very large (around 400 000 english words), so the error margin should not be very large for an average cipher text. This is of course very case sensitive. For any 'normal' text, almost all the words should be found in the dictionary, barring any misspelled words, but in cases like the example texts that are captions from Star Wars -movies, there are quite many words that are not found in any dictionary.
