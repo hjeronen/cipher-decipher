@@ -19,3 +19,4 @@ There are currently two dictionaries for the program in this repo. The first, cu
 * [Week report 3](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/week_report_3.md)
 * [Week report 4](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/week_report_4.md)
 * [Week report 5](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/week_report_5.md)
+* [Week report 6](https://github.com/hjeronen/cipher-decipher/blob/main/documentation/week_report_6.md)
