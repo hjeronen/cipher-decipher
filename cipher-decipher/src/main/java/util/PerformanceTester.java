@@ -32,11 +32,11 @@ public class PerformanceTester {
         this.runtimes5000words = new long[100];
         this.runtimes10000words = new long[100];
         
-        this.runtimes0Errors = new long[10];
-        this.runtimes5Errors = new long[10];
-        this.runtimes10Errors = new long[10];
-        this.runtimes15Errors = new long[10];
-        this.runtimes20Errors = new long[10];
+        this.runtimes0Errors = new long[100];
+        this.runtimes5Errors = new long[100];
+        this.runtimes10Errors = new long[100];
+        this.runtimes15Errors = new long[100];
+        this.runtimes20Errors = new long[100];
         
         this.words = new ArrayList<String>();
         getTestWords();
@@ -77,7 +77,7 @@ public class PerformanceTester {
         }
         for (int i = 0; i < errors; i++) {
             String errorWord = "";
-            int wordLength = 1 + ran.nextInt(10);
+            int wordLength = 5 + ran.nextInt(10);
             for (int j = 0; j < wordLength; j++) {
                 char letter = (char) (97 + ran.nextInt(26));
                 errorWord += letter;
@@ -117,15 +117,15 @@ public class PerformanceTester {
         getTimes(this.runtimes10000words, 10000);
         
         // runtimes with randomly formed error words
-        System.out.println("0 errors");
+        //System.out.println("0 errors");
         getTimesWithErrors(this.runtimes0Errors, 200, 0);
-        System.out.println("5 errors");
+        //System.out.println("5 errors");
         getTimesWithErrors(this.runtimes5Errors, 200, 5);
-        System.out.println("10 errors");
+        //System.out.println("10 errors");
         getTimesWithErrors(this.runtimes10Errors, 200, 10);
-        System.out.println("15 errors");
+        //System.out.println("15 errors");
         getTimesWithErrors(this.runtimes15Errors, 200, 15);
-        System.out.println("20 errors");
+        //System.out.println("20 errors");
         getTimesWithErrors(this.runtimes20Errors, 200, 20);
     }
 
