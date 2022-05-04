@@ -2,11 +2,15 @@ package util;
 
 import logic.Decrypter;
 
+/**
+ * A tester class for running performance tests.
+ *
+ */
 public class PerformanceTester implements Tester {
 
     private Decrypter decrypter;
     private TextFactory textFactory;
-    
+
     private long[] runtimes100words;
     private long[] runtimes500words;
     private long[] runtimes1000words;
@@ -23,7 +27,13 @@ public class PerformanceTester implements Tester {
         this.decrypter = d;
         this.textFactory = tf;
     }
-    
+
+    /**
+     * Initializes the result arrays.
+     *
+     * @param repeats number of times the test is repeated, therefore the size
+     * of the result arrays
+     */
     public void setup(int repeats) {
         this.runtimes100words = new long[repeats];
         this.runtimes500words = new long[repeats];
@@ -38,6 +48,13 @@ public class PerformanceTester implements Tester {
         this.runtimes20Errors = new long[repeats];
     }
 
+    /**
+     * Get runtimes for one test case.
+     *
+     * @param times result array
+     * @param words number of words in the test text
+     * @param errors number of errors in the test text
+     */
     public void getTimes(long[] times, int words, int errors) {
         for (int i = 0; i < times.length; i++) {
             String text = this.textFactory.formRandomText(words, errors);
@@ -49,6 +66,9 @@ public class PerformanceTester implements Tester {
         }
     }
 
+    /**
+     * Get runtimes for all test cases.
+     */
     public void getAllRuntimes() {
         // runtimes when all words are found in the dictionary
         getTimes(this.runtimes100words, 100, 0);
@@ -70,6 +90,11 @@ public class PerformanceTester implements Tester {
         getTimes(this.runtimes20Errors, 200, 20);
     }
 
+    /**
+     * Count average value from a result array.
+     *
+     * @param times result array
+     */
     public long getAverage(long[] times) {
         long sum = 0;
         for (int i = 0; i < times.length; i++) {

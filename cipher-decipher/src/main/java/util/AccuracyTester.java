@@ -2,6 +2,10 @@ package util;
 
 import logic.Decrypter;
 
+/**
+ * A tester class for running accuracy tests.
+ *
+ */
 public class AccuracyTester implements Tester {
 
     private Decrypter decrypter;
@@ -19,6 +23,12 @@ public class AccuracyTester implements Tester {
 
     }
 
+    /**
+     * Initializes the result arrays.
+     *
+     * @param repeats number of times the test is repeated, therefore the size
+     * of the result arrays
+     */
     public void setup(int repeats) {
         this.accuracies0Errors = new double[repeats];
         this.accuracies5Errors = new double[repeats];
@@ -27,10 +37,23 @@ public class AccuracyTester implements Tester {
         this.accuracies21Errors = new double[repeats];
     }
 
+    /**
+     * Decrypt a given text.
+     *
+     * @param cipher text that is to be decrypted
+     */
     public String getDecryption(String cipher) {
         return this.decrypter.decrypt(cipher).toLowerCase();
     }
 
+    /**
+     * Check accuracy of the original text and the result of the decryption.
+     *
+     * @param text original text (not encrypted)
+     * @param result the result of the decryption
+     * @return percentage of matching letters between original and decrypted
+     * text
+     */
     public double checkAccuracy(String text, String result) {
         double count = 0;
         double total = 0;
@@ -46,6 +69,13 @@ public class AccuracyTester implements Tester {
         return count / total;
     }
 
+    /**
+     * Run tests for given test case.
+     *
+     * @param results the array where results are saved
+     * @param numberOfWords number of words in the test text
+     * @param errors number of errors in the test text
+     */
     public void runTests(double[] results, int numberOfWords, int errors) {
         for (int i = 0; i < results.length; i++) {
             String text = this.textFactory.formRandomText(numberOfWords, errors);
@@ -54,13 +84,18 @@ public class AccuracyTester implements Tester {
             results[i] = checkAccuracy(text, result);
         }
     }
-    
-    public double getAverage(double[] list) {
+
+    /**
+     * Count average value from a result array.
+     *
+     * @param results result array
+     */
+    public double getAverage(double[] results) {
         double sum = 0;
-        for (int i = 0; i < list.length; i++) {
-            sum += list[i];
+        for (int i = 0; i < results.length; i++) {
+            sum += results[i];
         }
-        return sum / (double) list.length;
+        return sum / (double) results.length;
     }
 
     @Override

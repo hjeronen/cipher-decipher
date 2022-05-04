@@ -14,8 +14,7 @@ public class CrypterTest {
     
     @Test
     public void formKeyChoosesCharsAsKeyValues() {
-        this.crypter.formKey();
-        int[] key = this.crypter.getKey();
+        int[] key = this.crypter.formKey();
         for (int i = 97; i < 123; i++) {
             assertTrue(key[i] > 96 || key[i] < 123);
         }
@@ -24,7 +23,7 @@ public class CrypterTest {
     @Test
     public void removeOneStarCopiesTheListExceptForTheStar() {
         char[] test = new char[]{'a', 'b', 'c', '*', 'e'};
-        char[] result = this.crypter.removeOneStar(test);
+        char[] result = this.crypter.removeMissingChar(test);
         
         assertTrue(result.length == test.length - 1);
         
