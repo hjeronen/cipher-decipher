@@ -4,13 +4,13 @@ package ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JTextArea;
-import util.PerformanceTester;
+import util.Tester;
 
 public class TesterListener implements ActionListener {
-    private PerformanceTester tester;
+    private Tester tester;
     private JTextArea output;
     
-    public TesterListener(PerformanceTester tester, JTextArea output) {
+    public TesterListener(Tester tester, JTextArea output) {
         this.tester = tester;
         this.output = output;
     }
@@ -18,7 +18,7 @@ public class TesterListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent ae) {
         this.tester.run();
-        this.output.setText(this.tester.toString());
+        this.output.setText(this.tester.getResults());
     }
     
 }

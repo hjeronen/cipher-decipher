@@ -3,13 +3,14 @@ package ui;
 import logic.Decrypter;
 import java.awt.Container;
 import java.awt.Dimension;
-import javax.swing.JFrame;
 import java.awt.GridLayout;
-import java.awt.Label;
+import javax.swing.JFrame;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
+import util.AccuracyTester;
 import util.PerformanceTester;
 
 /**
@@ -20,11 +21,13 @@ public class GUI implements Runnable {
 
     private JFrame frame;
     private Decrypter decrypter;
-    private PerformanceTester tester;
+    private PerformanceTester ptester;
+    private AccuracyTester atester;
 
-    public GUI(Decrypter decrypter, PerformanceTester tester) {
+    public GUI(Decrypter decrypter, PerformanceTester ptester, AccuracyTester atester) {
         this.decrypter = decrypter;
-        this.tester = tester;
+        this.ptester = ptester;
+        this.atester = atester;
     }
 
     @Override
@@ -52,12 +55,24 @@ public class GUI implements Runnable {
         container.add(decrypt);
         container.add(output);
         
-        TesterListener testerlistener = new TesterListener(this.tester, output);
+        TesterListener performanceListener = new TesterListener(this.ptester, output);
         
-        JButton tester = new JButton("Performance tests");
-        tester.setAlignmentX(JButton.CENTER_ALIGNMENT);
-        tester.addActionListener(testerlistener);
-        container.add(tester);
+        JButton performanceTester = new JButton("Performance tests");
+        performanceTester.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        performanceTester.addActionListener(performanceListener);
+        //container.add(performanceTester);
+        
+        TesterListener accuracyListener = new TesterListener(this.atester, output);
+        
+        JButton accuracyTester = new JButton("Accuracy tests");
+        accuracyTester.setAlignmentX(JButton.CENTER_ALIGNMENT);
+        accuracyTester.addActionListener(accuracyListener);
+        //container.add(accuracyTester);
+        
+        JPanel panel = new JPanel(new GridLayout(1, 2));
+        panel.add(performanceTester);
+        panel.add(accuracyTester);
+        container.add(panel);
 
         this.frame.pack();
         this.frame.setVisible(true);
