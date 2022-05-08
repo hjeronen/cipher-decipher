@@ -24,5 +24,4 @@ The time complexity of searching a string of length m from a trie is O(m). The s
 * [Merge Sort](https://raw.githubusercontent.com/pllk/tirakirja/master/tirakirja.pdf)
 * [Substitution cipher](https://en.wikipedia.org/wiki/Substitution_cipher)
 * [Trie](https://en.wikipedia.org/wiki/Trie)
-* The dictionary_old was copied from here: https://github.com/dwyl/english-words, they state that the original source is this: https://web.archive.org/web/20131118073324/http://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable
-* The other dictionary was copied from here: https://github.com/filiph/english_words/blob/master/data/word-freq-top5000.csv, with own additions
+* The [dictionary_long](https://github.com/hjeronen/cipher-decipher/blob/main/cipher-decipher/dictionary_long.txt) was copied from here: https://github.com/dwyl/english-words, they state that the original source is this: https://web.archive.org/web/20131118073324/http://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable
