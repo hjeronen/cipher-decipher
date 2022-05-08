@@ -38,24 +38,19 @@ public class Decrypter {
      * @return decrypted text
      */
     public String decrypt(String text) {
-        
         String modifiedText = this.texthandler.cleanText(text);
-
         if (modifiedText.isBlank()) {
             return text;
         }
-        
+
         String cipherLetters = this.texthandler.getAllUsedCharacters(modifiedText);
         double[] cipherFrequencies = this.texthandler.findCharacterFrequencies(modifiedText);
-        //this.keyfinder.initializeArrays();
         this.keyfinder.setCipherFrequencies(cipherFrequencies);
         
         String[] cipherwords = this.texthandler.getWordListString(modifiedText, this.maxTextLength);
         StringBuilder[] words = this.texthandler.copyWordListToStringBuilder(cipherwords);
         
         char[] key = this.keyfinder.findKey(cipherwords, words, cipherLetters);
-        
-        
         
         return this.texthandler.formResult(text, key);
     }

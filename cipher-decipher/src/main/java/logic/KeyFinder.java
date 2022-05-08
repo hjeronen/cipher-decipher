@@ -1,8 +1,6 @@
 package logic;
 
 import domain.Trie;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class KeyFinder {
 
@@ -20,8 +18,8 @@ public class KeyFinder {
     private StringBuilder[] words;
 
     private int maxErrors;
-    
-    private String errorWords;
+
+    private int[] errorWords;
 
     public KeyFinder(Trie dictionary) {
         this.dictionary = dictionary;
@@ -66,16 +64,14 @@ public class KeyFinder {
     public char[] findKey(String[] cipherwords, StringBuilder[] words, String cipherLetters) {
         this.cipherwords = cipherwords;
         this.words = words;
-        
-        this.errorWords = "";
 
-        long start = System.currentTimeMillis();
+        //long start = System.currentTimeMillis();
         double percentage = 0;
         initializeArrays();
         this.maxErrors = (int) Math.floor(cipherwords.length * percentage);
-        String errors = "";
+        this.errorWords = new int[0];
 
-        if (testKeyValues(0, 0, 0)) {
+        if (testKeyValues(0, 0, 0, this.errorWords)) {
             checkForUnsubstitutedCharacters(cipherLetters);
             return this.substitutions;
         }
@@ -89,9 +85,7 @@ public class KeyFinder {
         int keysFound = 0;
 
         while (true) {
-//            undoErrorChars(this.errorWords);
-//            errors = "";
-            initializeArrays();
+            undoErrorChars(this.errorWords);
             prevNumberOfErrors = this.maxErrors;
             this.maxErrors = (int) Math.floor(cipherwords.length * percentage);
             if (keysFound > 0 && prevNumberOfErrors == this.maxErrors) {
@@ -102,7 +96,11 @@ public class KeyFinder {
                 this.substitutions = prevKey;
                 break;
             }
-            if (testKeyValues(0, 0, 0)) {
+            int[] allErrorWords = new int[this.maxErrors];
+            for (int i = 0; i < allErrorWords.length; i++) {
+                allErrorWords[i] = -1;
+            }
+            if (testKeyValues(0, 0, 0, allErrorWords)) {
                 upper = percentage;
                 prevWorkingPercentage = percentage;
                 percentage = (percentage + lower) / 2;
@@ -119,18 +117,20 @@ public class KeyFinder {
             }
         }
 
-        long stop = System.currentTimeMillis();
-        System.out.println("time " + (stop - start));
+        //long stop = System.currentTimeMillis();
+        //System.out.println("time " + (stop - start));
         setFoundKeys(cipherLetters);
         checkForUnsubstitutedCharacters(cipherLetters);
 
         return this.substitutions;
     }
-    
-    public void undoErrorChars(String errorWords) {
-        String[] errors = errorWords.split(" ");
-        for (int i = 0; i < errors.length; i++) {
-            String word = errors[i];
+
+    public void undoErrorChars(int[] errorWords) {
+        for (int i = 0; i < errorWords.length; i++) {
+            if (errorWords[i] == -1) {
+                break;
+            }
+            String word = this.cipherwords[errorWords[i]];
             for (int j = 0; j < word.length(); j++) {
                 char character = word.charAt(j);
                 this.substituted[character] = false;
@@ -168,14 +168,14 @@ public class KeyFinder {
      * @param errors amount of words that could not be decrypted
      * @return true if suitable decryption was found, false if not
      */
-    public boolean testKeyValues(int j, int i, int errors) {
+    public boolean testKeyValues(int j, int i, int errors, int[] allErrorWords) {
         if (i == this.cipherwords.length) {
-            //this.errorWords = allErrorWords;
+            this.errorWords = allErrorWords;
             return true;
         }
         if (j == this.cipherwords[i].length()) {
             if (findWord(this.words[i].toString())) {
-                return testKeyValues(0, i + 1, errors);
+                return testKeyValues(0, i + 1, errors, allErrorWords);
             }
             // if all the characters were changed before this word, mark as error
             // else return false
@@ -185,8 +185,8 @@ public class KeyFinder {
                 }
             }
             if (errors + 1 <= this.maxErrors) {
-                //allErrorWords += this.cipherwords[i] + " ";
-                return testKeyValues(0, i + 1, errors + 1);
+                allErrorWords[errors] = i;
+                return testKeyValues(0, i + 1, errors + 1, allErrorWords);
             }
 
             return false;
@@ -197,7 +197,7 @@ public class KeyFinder {
 
         if (this.substituted[character]) {
             word.setCharAt(j, this.substitutions[character]);
-            return testKeyValues(j + 1, i, errors);
+            return testKeyValues(j + 1, i, errors, allErrorWords);
         }
 
         this.substituted[character] = true;
@@ -220,7 +220,7 @@ public class KeyFinder {
             word.setCharAt(j, key);
 
             if (findSubstring(word.substring(0, j + 1))) {
-                if (testKeyValues(j + 1, i, errors)) {
+                if (testKeyValues(j + 1, i, errors, allErrorWords)) {
                     return true;
                 }
             }
@@ -244,8 +244,8 @@ public class KeyFinder {
             // no possible substitutions were found for any of the unsubstituted characters in the word
             // check how many errors
             if (errors + 1 <= this.maxErrors) {
-                //allErrorWords += this.cipherwords[i] + " ";
-                return testKeyValues(0, i + 1, errors + 1);
+                allErrorWords[errors] = i;
+                return testKeyValues(0, i + 1, errors + 1, allErrorWords);
             }
         }
         // if not at the earliest changed character or if too many errors, return back to previous point in recursion
