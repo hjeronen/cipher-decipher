@@ -43,29 +43,6 @@ public class DecrypterTest {
     }
 
     @Test
-    public void getClosestAvailableKeyReturnsCharWithClosestFrequency() {
-        this.decrypter.initializeArrays();
-        char[] listOfUsedChars = new char[1];
-        // the frequency of letter d is 4.1 %
-        assertTrue(this.decrypter.getClosestAvailableKey(listOfUsedChars, 4.1) == 'd');
-    }
-
-    @Test
-    public void findWordReturnsTrueIfWordIsInDictionary() {
-        assertTrue(this.decrypter.findWord("sea"));
-    }
-
-    @Test
-    public void findWordReturnsFalseForSubstrings() {
-        assertFalse(this.decrypter.findWord("se"));
-    }
-
-    @Test
-    public void findSubstringReturnsTrueForSubstrings() {
-        assertTrue(this.decrypter.findSubstring("se"));
-    }
-
-    @Test
     public void decrypterReturnsADecryption() {
         assertEquals(this.decrypter.decrypt(this.testtext), "shell");
     }

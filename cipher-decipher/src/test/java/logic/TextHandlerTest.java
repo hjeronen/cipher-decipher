@@ -38,8 +38,7 @@ public class TextHandlerTest {
     @Test
     public void findCharacterFrequenciesSavesCharacterFrequenciesInGivenArray() {
         String text = "this is a simple test text";
-        double[] frequencies = new double[128];
-        this.texthandler.findCharacterFrequencies(text, frequencies);
+        double[] frequencies = this.texthandler.findCharacterFrequencies(text);
         // testing approximate values for simplicity
         assertTrue((int) frequencies['t'] == 23);
         assertTrue((int) frequencies['h'] == 4);

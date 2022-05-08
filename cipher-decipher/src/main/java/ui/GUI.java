@@ -35,10 +35,17 @@ public class GUI implements Runnable {
         this.frame = new JFrame("cipher-decipher");
         this.frame.setPreferredSize(new Dimension(500, 600));
         this.frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        
 
+        createComponents();
+
+        this.frame.pack();
+        this.frame.setVisible(true);
+    }
+
+    public void createComponents() {
         Container container = this.frame.getContentPane();
         this.frame.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
+
         JTextArea input = new JTextArea("input");
         input.setLineWrap(true);
         input.setWrapStyleWord(true);
@@ -54,28 +61,23 @@ public class GUI implements Runnable {
         decrypt.addActionListener(listener);
         container.add(decrypt);
         container.add(output);
-        
+
         TesterListener performanceListener = new TesterListener(this.ptester, output);
-        
+
         JButton performanceTester = new JButton("Performance tests");
         performanceTester.setAlignmentX(JButton.CENTER_ALIGNMENT);
         performanceTester.addActionListener(performanceListener);
-        //container.add(performanceTester);
-        
+
         TesterListener accuracyListener = new TesterListener(this.atester, output);
-        
+
         JButton accuracyTester = new JButton("Accuracy tests");
         accuracyTester.setAlignmentX(JButton.CENTER_ALIGNMENT);
         accuracyTester.addActionListener(accuracyListener);
-        //container.add(accuracyTester);
-        
+
         JPanel panel = new JPanel(new GridLayout(1, 2));
         panel.add(performanceTester);
         panel.add(accuracyTester);
         container.add(panel);
-
-        this.frame.pack();
-        this.frame.setVisible(true);
     }
 
 }

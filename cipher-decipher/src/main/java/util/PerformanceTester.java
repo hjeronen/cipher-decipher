@@ -78,15 +78,15 @@ public class PerformanceTester implements Tester {
         getTimes(this.runtimes10000words, 10000, 0);
 
         // runtimes with randomly formed error words
-        //System.out.println("0 errors");
+        System.out.println("0 errors");
         getTimes(this.runtimes0Errors, 200, 0);
-        //System.out.println("5 errors");
+        System.out.println("5 errors");
         getTimes(this.runtimes5Errors, 200, 5);
-        //System.out.println("10 errors");
+        System.out.println("10 errors");
         getTimes(this.runtimes10Errors, 200, 10);
-        //System.out.println("15 errors");
+        System.out.println("15 errors");
         getTimes(this.runtimes15Errors, 200, 15);
-        //System.out.println("20 errors");
+        System.out.println("20 errors");
         getTimes(this.runtimes20Errors, 200, 20);
     }
 

@@ -24,10 +24,23 @@ The userinterface is done with JavaFX and Swing because that seems to be the onl
 
 ## Implemented time and space complexities
 
-## Possible flaws and improvements
-Determining error margin is a bit tricky - too large will cause decryption errors and too small will increase the decryption time. The amount of allowed errors is increased during execution, but this will need to be tuned.
+## Flaws and improvements
 
-The program sometimes throws StackOverflowError, not sure why - of course for very long texts recursion would cause problems. Currently the size of the cipherwords array is limited (though not the length of the text) which helps, but sometimes the error still occurs. The text length probably needs to be downsized as well, not just the number of words.
+## Slightly erroneous translations
+So far I have identified three cases where slightly erroneous translations might occur:
+
+1. If the error margin is too large, this might let through some erroneous translations. For example, if a word 'mountain' is mistranslated 'fountain', the 'f' might cause some translation errors for the rest of the words in the text, but if they do not break the limit, the set key values are accepted.
+
+2. If there are letters that only occur in the text in words that are not found in the dictionary, these might be mistranslated because it is not possible to determine the absolutely correct value. Initially, these do not get translated at all, but after suitable key values are found for all other characters, the algorithm will check if there are any that are still unsubstituted, and will 'guess' a translation for these by choosing from the remaining available key values the key whose frequency is closest to the cipher letter's frequency. This might or might not be correct.
+
+3. If some cipher letters are chosen technically wrong key values (not the ones intended), but these produce valid words that are found in the dictionary, and the text is translated successfully with 0 % error margin, the translation is slightly erroneous - that is, error free but not what was originally intended. In this case, there would have been several possible translations for the entire text (with 0 % error margin), but the algorithm will stop at the first successful one.
+
+Case 1 is attempted to fix with tuning the error margin. In cases two and three, the program has no way of knowing the right translation - one possible fix would be to search for all possible translations and let the user choose the right one, but this solution is not implemented here. These cases are rather rare and depend on the text that is translated, what kind of words there are and how long the text is.
+
+All these errors are rare but possible, occurring mostly with short texts.
+
+## Performance time
+The decryption time is very short if error margin is 0, just right for the text or even too large, but if the error margin is too small, determining this takes rather long time. This increases performance time because the right error margin is found by increasing and decrasing the margin and attempting the translation again. This might be resolved by keeping track which words cause errors and only resubstituting the characters that occur in them.
 
 ## Sources
 * [Backtracking](https://en.wikipedia.org/wiki/Backtracking)

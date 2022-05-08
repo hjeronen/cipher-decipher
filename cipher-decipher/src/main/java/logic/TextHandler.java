@@ -26,7 +26,7 @@ public class TextHandler {
      * @param text text in lower case and without special characters
      * @param frequencies array where character frequencies are saved
      */
-    public void findCharacterFrequencies(String text, double[] frequencies) {
+    public double[] findCharacterFrequencies(String text) {
         // find all unique characters in text, their counts and total amount of characters, excluding spaces
         int[] counts = new int[128];
         String characters = "";
@@ -43,9 +43,11 @@ public class TextHandler {
         }
 
         // save ciphertext's character frequencies
+        double[] frequencies = new double[128];
         for (int i = 0; i < characters.length(); i++) {
             frequencies[characters.charAt(i)] = (double) counts[characters.charAt(i)] / total * 100;
         }
+        return frequencies;
     }
 
     public String getAllUsedCharacters(String text) {
