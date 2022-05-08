@@ -67,7 +67,7 @@ Case 1 has been attempted to fix by tuning the error margin. In cases 2 and 3, t
 All these errors are rare but possible, occurring mostly with short texts.
 
 ### Performance time
-The decryption time is very short if error margin is 0, just right for the text or even too large, but if the error margin is too small, determining this takes rather long time. This increases performance time because the right error margin is found by increasing and decrasing the margin and attempting the translation again. This might be resolved by keeping track which words cause errors and only resubstituting the characters that occur in them.
+The decryption time is very short if error margin is 0, just right for the text or even too large, but if the error margin is too small, determining this takes rather long time. This increases performance time because the right error margin is found by increasing and decrasing the margin and attempting the translation again. This is currently mended by keeping track which words cause errors and only resubstituting the characters that occur in them, but the times are still very long for randomly formed test texts, probably because all the characters tend to occur in the error words, and substituting them starts from scratch each time a new error margin is tried.
 
 ## Sources
 * [Backtracking](https://en.wikipedia.org/wiki/Backtracking)
