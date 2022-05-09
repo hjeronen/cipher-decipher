@@ -1,7 +1,5 @@
 package domain;
 
-import java.util.ArrayList;
-
 /**
  * Trie datastructure for saving a wordlist.
  *
@@ -19,21 +17,6 @@ public class Trie {
     }
 
     /**
-     * Creates a trie.
-     * 
-     * @param   words   list of words that are saved to the trie.
-     */
-    public void createTrie(ArrayList<String> words) {
-        for (String word : words) {
-            // the used dictionary file contains single letters that should be skipped
-            if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
-                continue;
-            }
-            trieInsert(this.root, word);
-        }
-    }
-
-    /**
      * Inserts a word into the trie. Loops through the word's characters and 
      * finds the nodes that contain the character as a value. If no nodes with 
      * that value are found, a new node is created, with the character as its 
@@ -42,10 +25,10 @@ public class Trie {
      * 
      * This function is done according to the pseudocode in wikipedia: https://en.wikipedia.org/wiki/Trie#Insertion
      * 
-     * @param   x   the starting node, which would be the root
      * @param   key the word that is inserted to the trie
      */
-    public void trieInsert(Node x, String key) {
+    public void trieInsert(String key) {
+        Node x = this.root;
         for (int i = 0; i < key.length(); i++) {
             if (x.getChild("" + key.charAt(i)) == null) {
                 x.addChild(new Node("" + key.charAt(i)));

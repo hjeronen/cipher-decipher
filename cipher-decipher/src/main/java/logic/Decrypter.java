@@ -2,7 +2,6 @@ package logic;
 
 import domain.Trie;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Scanner;
  *
  */
 public class Decrypter {
-    
+
     private TextHandler texthandler;
     private KeyFinder keyfinder;
 
@@ -46,15 +45,15 @@ public class Decrypter {
         String cipherLetters = this.texthandler.getAllUsedCharacters(modifiedText);
         double[] cipherFrequencies = this.texthandler.findCharacterFrequencies(modifiedText);
         this.keyfinder.setCipherFrequencies(cipherFrequencies);
-        
+
         String[] cipherwords = this.texthandler.getWordListString(modifiedText, this.maxTextLength);
         StringBuilder[] words = this.texthandler.copyWordListToStringBuilder(cipherwords);
-        
+
         char[] key = this.keyfinder.findKey(cipherwords, words, cipherLetters);
-        
+
         return this.texthandler.formResult(text, key);
     }
-    
+
     /**
      * Creates a dictionary. Words in the given file are stored in a trie
      * datastructure.
@@ -63,18 +62,20 @@ public class Decrypter {
      * should be used
      */
     private Trie createDictionary(String filename) {
-        ArrayList<String> words = new ArrayList<String>();
         Trie dictionary = new Trie();
         try {
             Scanner reader = new Scanner(new File(filename));
             while (reader.hasNext()) {
-                words.add(reader.nextLine());
+                String word = reader.nextLine();
+                if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
+                    continue;
+                }
+                dictionary.trieInsert(word);
             }
         } catch (Exception exception) {
             System.out.println("Dictionary creation failed.");
         }
-        dictionary.createTrie(words);
         return dictionary;
     }
-    
+
 }

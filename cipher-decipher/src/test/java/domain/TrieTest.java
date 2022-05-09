@@ -1,14 +1,12 @@
 
 package domain;
 
-import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TrieTest {
     
-    ArrayList<String> testwords;
     Trie trie;
     
     public TrieTest() {
@@ -17,13 +15,10 @@ public class TrieTest {
     
     @Before
     public void setUp() {
-        this.testwords = new ArrayList<String>();
-        this.testwords.add("she");
-        this.testwords.add("sea");
-        this.testwords.add("shell");
-        
         this.trie = new Trie();
-        this.trie.createTrie(this.testwords);
+        this.trie.trieInsert("she");
+        this.trie.trieInsert("sea");
+        this.trie.trieInsert("shell");
     }
     
     @Test

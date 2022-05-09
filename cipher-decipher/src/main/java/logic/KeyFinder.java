@@ -299,6 +299,7 @@ public class KeyFinder {
      * Find a word from dictionary.
      *
      * @param word the word that is searched
+     * @return true if word was found, false if not
      */
     public boolean findWord(String word) {
         return this.dictionary.findWord(word.toLowerCase());
@@ -308,6 +309,7 @@ public class KeyFinder {
      * Find a substring from dictionary.
      *
      * @param string the substring that is searched
+     * @return true if substring was found, false if not
      */
     public boolean findSubstring(String string) {
         return this.dictionary.findSubstring(string.toLowerCase());
