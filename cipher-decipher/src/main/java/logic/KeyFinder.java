@@ -61,38 +61,39 @@ public class KeyFinder {
         }
     }
 
+    /**
+     * Find a key for decrypting a ciphered text. The correct error margin is
+     * found through binary search.
+     *
+     * @param cipherwords all the words from the encrypted text organized by
+     * length
+     * @param words copy of cipherwords, character substitutions are tried on
+     * these
+     * @param cipherLetters all the unique characters that appear in the
+     * ciphered text
+     * @return the key that can be used to decrypt the text
+     */
     public char[] findKey(String[] cipherwords, StringBuilder[] words, String cipherLetters) {
         this.cipherwords = cipherwords;
         this.words = words;
 
-        //long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
+
         double percentage = 0;
-        initializeArrays();
-        this.maxErrors = (int) Math.floor(cipherwords.length * percentage);
-        this.errorWords = new int[0];
-
-        if (testKeyValues(0, 0, 0, this.errorWords)) {
-            checkForUnsubstitutedCharacters(cipherLetters);
-            return this.substitutions;
-        }
-
         double lower = 0;
         double upper = 0.1;
-        percentage = 0.1;
+        initializeArrays();
+        this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+        this.errorWords = new int[0];
+
         char[] prevKey = copyKey(this.substitutions);
-        double prevWorkingPercentage = upper;
+        int prevWorkingNumberOfErrors = 0;
         int prevNumberOfErrors = 0;
         int keysFound = 0;
 
         while (true) {
-            undoErrorChars(this.errorWords);
-            prevNumberOfErrors = this.maxErrors;
-            this.maxErrors = (int) Math.floor(cipherwords.length * percentage);
-            if (keysFound > 0 && prevNumberOfErrors == this.maxErrors) {
-                this.substitutions = prevKey;
-                break;
-            }
-            if (keysFound > 0 && percentage == prevWorkingPercentage) {
+            this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+            if (keysFound > 0 && (prevNumberOfErrors == this.maxErrors || prevWorkingNumberOfErrors == this.maxErrors)) {
                 this.substitutions = prevKey;
                 break;
             }
@@ -102,11 +103,15 @@ public class KeyFinder {
             }
             if (testKeyValues(0, 0, 0, allErrorWords)) {
                 upper = percentage;
-                prevWorkingPercentage = percentage;
+                prevWorkingNumberOfErrors = this.maxErrors;
                 percentage = (percentage + lower) / 2;
                 prevKey = copyKey(this.substitutions);
                 keysFound++;
             } else {
+                if (percentage == 0) {
+                    percentage = upper;
+                    continue;
+                }
                 if (keysFound == 0) {
                     lower = percentage;
                     percentage *= 2;
@@ -115,16 +120,25 @@ public class KeyFinder {
                     percentage = (upper + lower) / 2;
                 }
             }
+            undoErrorChars(this.errorWords);
+            prevNumberOfErrors = this.maxErrors;
         }
 
-        //long stop = System.currentTimeMillis();
-        //System.out.println("time " + (stop - start));
+        long stop = System.currentTimeMillis();
+        System.out.println("time " + (stop - start));
         setFoundKeys(cipherLetters);
         checkForUnsubstitutedCharacters(cipherLetters);
 
         return this.substitutions;
     }
 
+    /**
+     * Undo substitutions for characters in error words. The ciphered characters
+     * that occur in words that were marked as errors are 'reset' and keys used
+     * for them freed, so the next decryption attempt will only handle these.
+     *
+     * @param errorWords indexes of words that were marked as errors
+     */
     public void undoErrorChars(int[] errorWords) {
         for (int i = 0; i < errorWords.length; i++) {
             if (errorWords[i] == -1) {
@@ -140,6 +154,12 @@ public class KeyFinder {
         }
     }
 
+    /**
+     * Copy a substitution array to a new array.
+     *
+     * @param key list of substitutions that is copied
+     * @return copy of the given list
+     */
     public char[] copyKey(char[] key) {
         char[] copy = new char[key.length];
         for (int i = 0; i < key.length; i++) {
@@ -148,6 +168,15 @@ public class KeyFinder {
         return copy;
     }
 
+    /**
+     * Mark decrypted characters and taken keys as true. These values are reset
+     * in between decryption attempts. When the key finding loop breaks, the
+     * found values are in this.substitutions. For checking if some ciphered
+     * letters have not been set a key value, the decrypted characters and used
+     * keys need to be marked as true.
+     *
+     * @param cipherLetters all characters that appear in cipher text
+     */
     public void setFoundKeys(String cipherLetters) {
         for (int i = 0; i < cipherLetters.length(); i++) {
             if (this.substitutions[cipherLetters.charAt(i)] == '*') {
@@ -159,13 +188,15 @@ public class KeyFinder {
     }
 
     /**
-     * Decryption by word. Goes through words in this.cipherwords array and
-     * tries to find key values for ciphered characters. Keys for characters are
-     * selected by availability and closest frequency.
+     * Test key values for ciphered characters. Goes through words in
+     * this.cipherwords array and tries to find key values for ciphered
+     * characters. Keys for characters are selected by availability and closest
+     * frequency.
      *
      * @param j character index
      * @param i word index
      * @param errors amount of words that could not be decrypted
+     * @param allErrorWords indexes of words that were marked as errors
      * @return true if suitable decryption was found, false if not
      */
     public boolean testKeyValues(int j, int i, int errors, int[] allErrorWords) {
@@ -233,7 +264,6 @@ public class KeyFinder {
         this.substituted[character] = false;
         this.substitutions[character] = '*';
 
-        // check if first unchanged letter of the word
         int earliestChanged = 0;
         for (int z = cipher.length() - 1; z >= 0; z--) {
             if (this.firstAppearances[cipher.charAt(z)] == i) {
@@ -241,21 +271,21 @@ public class KeyFinder {
             }
         }
         if (j == earliestChanged) {
-            // no possible substitutions were found for any of the unsubstituted characters in the word
-            // check how many errors
+            // if first changed letter of the word, can be concluded that no possible 
+            // substitutions were found for any of the unsubstituted characters in the word
             if (errors + 1 <= this.maxErrors) {
                 allErrorWords[errors] = i;
                 return testKeyValues(0, i + 1, errors + 1, allErrorWords);
             }
         }
-        // if not at the earliest changed character or if too many errors, return back to previous point in recursion
+
         return false;
     }
 
     /**
-     * Find the closest frequency. Finds the char that has the same or closest
-     * typical frequency as the ciphered char in cipher text. If the char is
-     * already used as key another is chosen.
+     * Find the closest frequency. Finds the key that has the same or closest
+     * typical frequency as the ciphered character in cipher text. If the key is
+     * already used or tried for this character, another is chosen.
      *
      * @param used a list of characters that have already been tried
      * @param freq frequency of the cipher char in cipher text
@@ -296,7 +326,7 @@ public class KeyFinder {
     }
 
     /**
-     * Find a word from dictionary.
+     * Find a word from the dictionary.
      *
      * @param word the word that is searched
      * @return true if word was found, false if not
@@ -306,7 +336,7 @@ public class KeyFinder {
     }
 
     /**
-     * Find a substring from dictionary.
+     * Find a substring from the dictionary.
      *
      * @param string the substring that is searched
      * @return true if substring was found, false if not
@@ -315,6 +345,14 @@ public class KeyFinder {
         return this.dictionary.findSubstring(string.toLowerCase());
     }
 
+    /**
+     * Check if some ciphered letters have not been set a key value. If some
+     * cipher character has not been set a key value, choose a character with
+     * closest frequency from key values that have not been used yet.
+     *
+     * @param cipherLetters all unique characters that are used in the cipher
+     * text
+     */
     public void checkForUnsubstitutedCharacters(String cipherLetters) {
         for (int i = 0; i < cipherLetters.length(); i++) {
             if (this.substitutions[cipherLetters.charAt(i)] == '*') {
