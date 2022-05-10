@@ -31,6 +31,26 @@ public class KeyFinder {
     public char[] getSubstitutions() {
         return this.substitutions;
     }
+    
+    public void setSubstitutions(char[] array) {
+        this.substitutions = array;
+    }
+    
+    public void setTaken(boolean[] array) {
+        this.taken = array;
+    }
+    
+    public boolean[] getTaken() {
+        return this.taken;
+    }
+    
+    public void setSubstituted(boolean[] array) {
+        this.substituted = array;
+    }
+    
+    public boolean[] getSubstituted() {
+        return this.substituted;
+    }
 
     /**
      * Sets the typical frequencies that characters have in texts that are written in english.
@@ -63,6 +83,19 @@ public class KeyFinder {
             this.substitutions[i] = '*';
             this.firstAppearances[i] = 0;
         }
+    }
+    
+    /**
+     * Set the required word arrays for decryption.
+     * 
+     * @param cipherwords the original cipher words
+     * @param words the words on which the character substitutions are tried
+     * @param cipherFrequencies the frequencies of cipher characters
+     */
+    public void setArrays(String[] cipherwords, StringBuilder[] words, double[] cipherFrequencies) {
+        this.cipherwords = cipherwords;
+        this.words = words;
+        this.cipherFrequencies = cipherFrequencies;
     }
 
     /**
@@ -108,11 +141,7 @@ public class KeyFinder {
                 if (keysFound > 0) {
                     break;
                 }
-                if (percentage == 0) {
-                    percentage = 0.1;
-                } else {
-                    percentage *= 2;
-                }
+                percentage *= 2;
                 this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
             }
             undoErrorChars(this.errorWords);
@@ -125,12 +154,6 @@ public class KeyFinder {
         checkForUnsubstitutedCharacters(cipherLetters);
 
         return this.substitutions;
-    }
-    
-    public void setArrays(String[] cipherwords, StringBuilder[] words, double[] cipherFrequencies) {
-        this.cipherwords = cipherwords;
-        this.words = words;
-        this.cipherFrequencies = cipherFrequencies;
     }
 
     /**
@@ -209,7 +232,7 @@ public class KeyFinder {
             if (findWord(this.words[i].toString())) {
                 return testKeyValues(0, i + 1, errors, allErrorWords);
             }
-            // if all the characters were changed before this word, mark as error
+            // if all the characters in the word were changed before this word, mark as error
             // else return false
             for (int z = 0; z < this.cipherwords[i].length(); z++) {
                 if (this.firstAppearances[this.cipherwords[i].charAt(z)] == i) {
@@ -217,7 +240,7 @@ public class KeyFinder {
                 }
             }
             if (errors + 1 <= this.maxErrors) {
-                // for better error detection
+                // for better detection if error margin is too small, slight chance of causing errors with very short texts and way too big error margin
                 // previously successfully translated words will not be marked as errors
                 if (this.workingKeyFound) {
                     if (!checkIfIntInList(this.errorWords, i)) {
@@ -336,6 +359,13 @@ public class KeyFinder {
         return false;
     }
     
+    /**
+     * Check if an int is on the given list.
+     *
+     * @param list a list of ints
+     * @param i int that is searched for
+     * @return true if int was on the list, false if not
+     */
     public boolean checkIfIntInList(int[] list, int i) {
         for (int j = 0; j < list.length; j++) {
             if (list[j] == i) {
