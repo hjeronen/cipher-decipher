@@ -25,7 +25,14 @@ public class KeyFinder {
         this.dictionary = dictionary;
         setKeyFrequencies();
     }
+    
+    public char[] getSubstitutions() {
+        return this.substitutions;
+    }
 
+    /**
+     * Sets the typical frequencies that characters have in texts that are written in english.
+     */
     private void setKeyFrequencies() {
         String abc = "abcdefghijklmnopqrstuvwxyz";
         double[] freq = new double[]{7.9, 1.4, 2.7, 4.1, 12.2, 2.1, 1.9, 5.9,
@@ -40,13 +47,8 @@ public class KeyFinder {
         }
     }
 
-    public void setCipherFrequencies(double[] frequencies) {
-        this.cipherFrequencies = frequencies;
-    }
-
     /**
      * Initializes the required arrays for decryption.
-     *
      */
     public void initializeArrays() {
         this.taken = new boolean[128];
@@ -69,17 +71,15 @@ public class KeyFinder {
      * length
      * @param words copy of cipherwords, character substitutions are tried on
      * these
-     * @param cipherLetters all the unique characters that appear in the
-     * ciphered text
+     * @param cipherLetters all the unique characters that appear in the cipher
+     * text
+     * @param cipherFrequencies the frequencies of characters in cipher text
      * @return the key that can be used to decrypt the text
      */
-    public char[] findKey(String[] cipherwords, StringBuilder[] words, String cipherLetters) {
-        this.cipherwords = cipherwords;
-        this.words = words;
-
-        long start = System.currentTimeMillis();
-
-        double percentage = 0;
+    public char[] findKey(String[] cipherwords, StringBuilder[] words, String cipherLetters, double[] cipherFrequencies) {
+        setArrays(cipherwords, words, cipherFrequencies);
+        //long start = System.currentTimeMillis();
+        double percentage = 0.1;
         double lower = 0;
         double upper = 0.1;
         initializeArrays();
@@ -91,45 +91,88 @@ public class KeyFinder {
         int prevNumberOfErrors = 0;
         int keysFound = 0;
 
+        // binary search
+//        while (true) {
+//            this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+//            if (keysFound > 0 && (prevNumberOfErrors == this.maxErrors || prevWorkingNumberOfErrors == this.maxErrors)) {
+//                this.substitutions = prevKey;
+//                break;
+//            }
+//            int[] allErrorWords = new int[this.maxErrors];
+//            for (int i = 0; i < allErrorWords.length; i++) {
+//                allErrorWords[i] = -1;
+//            }
+//            if (testKeyValues(0, 0, 0, allErrorWords)) {
+//                System.out.println("percentage " + percentage + " worked");
+//                upper = percentage;
+//                prevWorkingNumberOfErrors = this.maxErrors;
+//                percentage = (percentage + lower) / 2;
+//                prevKey = copyKey(this.substitutions);
+//                keysFound++;
+//            } else {
+//                System.out.println("percentage " + percentage + " did not work");
+//                if (percentage == 0) {
+//                    percentage = upper;
+//                    continue;
+//                }
+//                if (keysFound == 0) {
+//                    lower = percentage;
+//                    percentage *= 2;
+//                } else {
+//                    lower = percentage;
+//                    percentage = (upper + lower) / 2;
+//                }
+//            }
+//            undoErrorChars(this.errorWords);
+//            prevNumberOfErrors = this.maxErrors;
+//        }
+        // descending
         while (true) {
-            this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-            if (keysFound > 0 && (prevNumberOfErrors == this.maxErrors || prevWorkingNumberOfErrors == this.maxErrors)) {
-                this.substitutions = prevKey;
-                break;
-            }
+            //System.out.println("errors " + this.maxErrors);
+            //long start = System.currentTimeMillis();
             int[] allErrorWords = new int[this.maxErrors];
             for (int i = 0; i < allErrorWords.length; i++) {
                 allErrorWords[i] = -1;
             }
             if (testKeyValues(0, 0, 0, allErrorWords)) {
-                upper = percentage;
-                prevWorkingNumberOfErrors = this.maxErrors;
-                percentage = (percentage + lower) / 2;
                 prevKey = copyKey(this.substitutions);
+                if (this.maxErrors == 0) {
+                    break;
+                }
+                prevWorkingNumberOfErrors = this.maxErrors;
+                this.maxErrors--;
                 keysFound++;
             } else {
+                if (keysFound > 0) {
+                    //long stop = System.currentTimeMillis();
+                    //System.out.println("iteration time " + (stop - start));
+                    break;
+                }
                 if (percentage == 0) {
-                    percentage = upper;
-                    continue;
-                }
-                if (keysFound == 0) {
-                    lower = percentage;
-                    percentage *= 2;
+                    percentage = 0.1;
                 } else {
-                    lower = percentage;
-                    percentage = (upper + lower) / 2;
+                    percentage *= 2;
                 }
+                this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
             }
             undoErrorChars(this.errorWords);
-            prevNumberOfErrors = this.maxErrors;
+            //long stop = System.currentTimeMillis();
+            //System.out.println("iteration time " + (stop - start));
         }
 
-        long stop = System.currentTimeMillis();
-        System.out.println("time " + (stop - start));
+        this.substitutions = prevKey;
+        //long stop = System.currentTimeMillis();
+        //System.out.println("time " + (stop - start));
         setFoundKeys(cipherLetters);
         checkForUnsubstitutedCharacters(cipherLetters);
 
         return this.substitutions;
+    }
+    
+    public void setArrays(String[] cipherwords, StringBuilder[] words, double[] cipherFrequencies) {
+        this.cipherwords = cipherwords;
+        this.words = words;
+        this.cipherFrequencies = cipherFrequencies;
     }
 
     /**

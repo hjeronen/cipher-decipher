@@ -49,4 +49,52 @@ public class KeyFinderTest {
     public void findSubstringReturnsTrueForSubstrings() {
         assertTrue(this.keyFinder.findSubstring("wor"));
     }
+    
+    @Test
+    public void copyKeyReturnsCopyOfTheGivenArray() {
+        char[] test = new char[]{'a', 'b', 'c'};
+        char[] copy = this.keyFinder.copyKey(test);
+        assertTrue(test[0] == copy[0]);
+        assertTrue(test[1] == copy[1]);
+        assertTrue(test[2] == copy[2]);
+    }
+    
+    @Test
+    public void checkIfCharIsInListReturnsTrueForACharThatIsInTheList() {
+        char[] test = new char[]{'a', 'b', 'c'};
+        assertTrue(this.keyFinder.checkIfCharInList(test, 'b'));
+    }
+    
+    @Test
+    public void checkIfCharIsInListReturnsFalseForACharThatIsNotInTheList() {
+        char[] test = new char[]{'a', 'b', 'c'};
+        assertFalse(this.keyFinder.checkIfCharInList(test, 'd'));
+    }
+    
+    @Test
+    public void findKeyFindsTheRightKey() {
+        this.keyFinder.initializeArrays();
+        String[] cipherwords = new String[]{"nvhhztv", "hrnkov"};
+        StringBuilder[] words = new StringBuilder[]{new StringBuilder("nvhhztv"), new StringBuilder("hrnkov")};
+        String cipherLetters = "hrnkovzt";
+        double[] cipherFrequencies = new double[128];
+        cipherFrequencies['h'] = 6.1;
+        cipherFrequencies['r'] = 6.8;
+        cipherFrequencies['n'] = 2.3;
+        cipherFrequencies['k'] = 1.8;
+        cipherFrequencies['o'] = 3.9;
+        cipherFrequencies['v'] = 12.2;
+        cipherFrequencies['z'] = 7.9;
+        cipherFrequencies['t'] = 1.9;
+        char[] key = this.keyFinder.findKey(cipherwords, words, cipherLetters, cipherFrequencies);
+        
+        assertTrue(key['h'] == 's');
+        assertTrue(key['r'] == 'i');
+        assertTrue(key['n'] == 'm');
+        assertTrue(key['k'] == 'p');
+        assertTrue(key['o'] == 'l');
+        assertTrue(key['v'] == 'e');
+        assertTrue(key['z'] == 'a');
+        assertTrue(key['t'] == 'g');
+    }
 }

@@ -27,13 +27,20 @@ public class Decrypter {
         this.keyfinder = new KeyFinder(createDictionary(filename));
         this.maxTextLength = 2000;
     }
+    
+    public TextHandler getTextHandler() {
+        return this.texthandler;
+    }
+    
+    public KeyFinder getKeyFinder() {
+        return this.keyfinder;
+    }
 
     /**
      * Decryption function. Takes a ciphered text as parameter and returns it
      * decrypted.
      *
      * @param text input from user
-     *
      * @return decrypted text
      */
     public String decrypt(String text) {
@@ -44,12 +51,11 @@ public class Decrypter {
 
         String cipherLetters = this.texthandler.getAllUsedCharacters(modifiedText);
         double[] cipherFrequencies = this.texthandler.findCharacterFrequencies(modifiedText);
-        this.keyfinder.setCipherFrequencies(cipherFrequencies);
 
         String[] cipherwords = this.texthandler.getWordListString(modifiedText, this.maxTextLength);
         StringBuilder[] words = this.texthandler.copyWordListToStringBuilder(cipherwords);
 
-        char[] key = this.keyfinder.findKey(cipherwords, words, cipherLetters);
+        char[] key = this.keyfinder.findKey(cipherwords, words, cipherLetters, cipherFrequencies);
 
         return this.texthandler.formResult(text, key);
     }
