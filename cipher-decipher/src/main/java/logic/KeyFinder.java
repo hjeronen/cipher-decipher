@@ -20,6 +20,8 @@ public class KeyFinder {
     private int maxErrors;
 
     private int[] errorWords;
+    
+    private boolean workingKeyFound;
 
     public KeyFinder(Trie dictionary) {
         this.dictionary = dictionary;
@@ -80,56 +82,16 @@ public class KeyFinder {
         setArrays(cipherwords, words, cipherFrequencies);
         //long start = System.currentTimeMillis();
         double percentage = 0.1;
-        double lower = 0;
-        double upper = 0.1;
         initializeArrays();
         this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
         this.errorWords = new int[0];
+        this.workingKeyFound = false;
 
         char[] prevKey = copyKey(this.substitutions);
-        int prevWorkingNumberOfErrors = 0;
-        int prevNumberOfErrors = 0;
         int keysFound = 0;
 
-        // binary search
-//        while (true) {
-//            this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
-//            if (keysFound > 0 && (prevNumberOfErrors == this.maxErrors || prevWorkingNumberOfErrors == this.maxErrors)) {
-//                this.substitutions = prevKey;
-//                break;
-//            }
-//            int[] allErrorWords = new int[this.maxErrors];
-//            for (int i = 0; i < allErrorWords.length; i++) {
-//                allErrorWords[i] = -1;
-//            }
-//            if (testKeyValues(0, 0, 0, allErrorWords)) {
-//                System.out.println("percentage " + percentage + " worked");
-//                upper = percentage;
-//                prevWorkingNumberOfErrors = this.maxErrors;
-//                percentage = (percentage + lower) / 2;
-//                prevKey = copyKey(this.substitutions);
-//                keysFound++;
-//            } else {
-//                System.out.println("percentage " + percentage + " did not work");
-//                if (percentage == 0) {
-//                    percentage = upper;
-//                    continue;
-//                }
-//                if (keysFound == 0) {
-//                    lower = percentage;
-//                    percentage *= 2;
-//                } else {
-//                    lower = percentage;
-//                    percentage = (upper + lower) / 2;
-//                }
-//            }
-//            undoErrorChars(this.errorWords);
-//            prevNumberOfErrors = this.maxErrors;
-//        }
-        // descending
+        // descending error margin
         while (true) {
-            //System.out.println("errors " + this.maxErrors);
-            //long start = System.currentTimeMillis();
             int[] allErrorWords = new int[this.maxErrors];
             for (int i = 0; i < allErrorWords.length; i++) {
                 allErrorWords[i] = -1;
@@ -139,13 +101,11 @@ public class KeyFinder {
                 if (this.maxErrors == 0) {
                     break;
                 }
-                prevWorkingNumberOfErrors = this.maxErrors;
                 this.maxErrors--;
+                this.workingKeyFound = true;
                 keysFound++;
             } else {
                 if (keysFound > 0) {
-                    //long stop = System.currentTimeMillis();
-                    //System.out.println("iteration time " + (stop - start));
                     break;
                 }
                 if (percentage == 0) {
@@ -156,8 +116,6 @@ public class KeyFinder {
                 this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
             }
             undoErrorChars(this.errorWords);
-            //long stop = System.currentTimeMillis();
-            //System.out.println("iteration time " + (stop - start));
         }
 
         this.substitutions = prevKey;
@@ -259,10 +217,16 @@ public class KeyFinder {
                 }
             }
             if (errors + 1 <= this.maxErrors) {
+                // for better error detection
+                // previously successfully translated words will not be marked as errors
+                if (this.workingKeyFound) {
+                    if (!checkIfIntInList(this.errorWords, i)) {
+                        return false;
+                    }
+                }
                 allErrorWords[errors] = i;
                 return testKeyValues(0, i + 1, errors + 1, allErrorWords);
             }
-
             return false;
         }
         StringBuilder word = this.words[i];
@@ -317,11 +281,15 @@ public class KeyFinder {
             // if first changed letter of the word, can be concluded that no possible 
             // substitutions were found for any of the unsubstituted characters in the word
             if (errors + 1 <= this.maxErrors) {
+                if (this.workingKeyFound) {
+                    if (!checkIfIntInList(this.errorWords, i)) {
+                        return false;
+                    }
+                }
                 allErrorWords[errors] = i;
                 return testKeyValues(0, i + 1, errors + 1, allErrorWords);
             }
         }
-
         return false;
     }
 
@@ -362,6 +330,15 @@ public class KeyFinder {
     public boolean checkIfCharInList(char[] list, char character) {
         for (int j = 0; j < list.length; j++) {
             if (list[j] == character) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public boolean checkIfIntInList(int[] list, int i) {
+        for (int j = 0; j < list.length; j++) {
+            if (list[j] == i) {
                 return true;
             }
         }
