@@ -37,7 +37,7 @@ public class Node {
      * @return true if list was full, false if not.
      */
     public boolean checkIfFull() {
-        return this.children.length == this.numberOfChildren + 1;
+        return this.children.length == this.numberOfChildren;
     }
 
     /**
@@ -79,5 +79,13 @@ public class Node {
 
     public boolean getIsFinal() {
         return this.isFinal;
+    }
+    
+    public Node[] getChildren() {
+        return this.children;
+    }
+    
+    public int getNumberOfChildren() {
+        return this.numberOfChildren;
     }
 }
