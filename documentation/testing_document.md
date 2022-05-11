@@ -94,9 +94,13 @@ So the number of error words increases performance time, as does the length of t
 
 #### Key finding times for random texts with different length and same amount of errors
 ``````````````````````````````````````````
-coming soon
+Run times for texts with 20 errors: 
+60 words average time ms: 19769         min 11760 max 27815
+100 words errors average time ms: 9003  min 5421 max 13765
+200 words errors average time ms: 714   min 16 max 1527
+500 words errors average time ms: 1485  min 315 max 3202
 ``````````````````````````````````````````
-
+Here the decryption time actually decreses when the amount of errors stays the same and the amount of words increases. A new random text is formed for each round of each test case, and again the times vary a lot between different texts. The shortest time for 200 words is very short, and this might distort the results again - although the longest time is rather short as well. With five hundred words, probably not all of the words are included in the recursion, because the text length is limited and the shortest words are left out. With 60 words, error margin is very large, and initial 10% error margin will have to be increased twice, which increases the execution time. Same goes for 100 words. This might actually be why 200 words time is so good, because the initial error margin is just right.
 
 #### Key finding times for the same text with increasing number of errors
 ````````````````````````````````````````````
@@ -120,11 +124,13 @@ Run times for the same text with increasing number of errors:
 ````````````````````````````````````````````
 Here the initial decryption time is very short, and suddenly increases with 10 errors. I'm not sure what happened here, or why the time decreases after that - probably because of how the error words are distributed among the normal words. The overall time mostly depends on how fast the algorithm determines the last used error margin is too small, and this is discovered faster with some texts than with others.
 
+This is why I don't think it is a good idea to make any generalizations based on just one text, but rather look at the distribution of times for different texts. Running test with larger amount of texts would be better, but very time consuming.
+
 ### The error margin
-The times here are measured up to the 10% error margin. The dictionary that is used is very large (around 400 000 english words), so the error margin should not be very large for an average cipher text. This is of course very case sensitive. For any 'normal' text, almost all the words should be found in the dictionary, barring any misspelled words. In manual testing when trying decrypting more exotic texts (such as the Star Wars -texts in [sample texts](https://github.com/hjeronen/cipher-decipher/blob/main/cipher-decipher/sample_texts.md)) the 10 percent error margin works surprisingly well.
+The times here are measured (in most cases) up to the 10% error margin. The dictionary that is used is very large (around 400 000 english words), so the error margin should not be very large for an average cipher text. This is of course very case sensitive. For any 'normal' text, almost all the words should be found in the dictionary, barring any misspelled words. In manual testing when decrypting more exotic texts (such as the Star Wars -texts in [sample texts](https://github.com/hjeronen/cipher-decipher/blob/main/cipher-decipher/sample_texts.md)) the 10 percent error margin works surprisingly well.
 
 ## Accuracy testing
-The AccuracyTester class implements accuracy tests that check the average accuracy of a decryption result with the original text. The test texts are formed exactly like in performance testing, by picking random words from the wordlist and then using the Crypter class to encrypt the text. Each text has 100 words and 0, 5, 12, 14 or 21 error words, which are 5-15 characters long and also formed randomly. The test is run 10 times for every text in each class. The results are saved in arrays and the average values are counted from these.
+The AccuracyTester class implements accuracy tests that check the average accuracy of a decryption result with the original text. The accuracy is determined by comparing characters. The test texts are formed exactly like in performance testing, by picking random words from the wordlist and then using the Crypter class to encrypt the text. Each text has 100 words and 0, 5, 12, 14 or 21 error words, which are 5-15 characters long and also formed randomly. The test is run 10 times for every text in each class. The results are saved in arrays and the average values are counted from these.
 
 ``````````````````````````````````````````
 Average accuracies:
