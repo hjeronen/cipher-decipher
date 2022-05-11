@@ -24,7 +24,7 @@ public class TextHandler {
      * frequencies array at the place of the character in question.
      *
      * @param text text in lower case and without special characters
-     * @param frequencies array where character frequencies are saved
+     * @return array of character frequencies
      */
     public double[] findCharacterFrequencies(String text) {
         // find all unique characters in text, their counts and total amount of characters, excluding spaces

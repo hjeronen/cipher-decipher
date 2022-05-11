@@ -1,6 +1,7 @@
 package util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -36,12 +37,18 @@ public class TextFactory {
                 this.words[index] = word;
                 index++;
             }
-        } catch (Exception exception) {
-            System.out.println("Dictionary creation failed.");
+        } catch (FileNotFoundException exception) {
+            System.out.println("File not found.");
         }
     }
 
-    private int countWords(String filename) {
+    /**
+     * Count words in the word list. Need to know the amount of words to form the right length of list.
+     *
+     * @param filename the file where the words are read from
+     * @return the number of words in the file
+     */
+    public int countWords(String filename) {
         int count = 0;
         try {
             Scanner reader = new Scanner(new File(filename));
@@ -52,10 +59,19 @@ public class TextFactory {
                 }
                 count++;
             }
-        } catch (Exception exception) {
-            System.out.println("Dictionary creation failed.");
+        } catch (FileNotFoundException exception) {
+            System.out.println("File not found.");
         }
         return count;
+    }
+
+    /**
+     * Get the word list that is used. Need this for tests.
+     *
+     * @return word list
+     */
+    public String[] getWords() {
+        return this.words;
     }
 
     /**
@@ -79,13 +95,7 @@ public class TextFactory {
             text += " ";
         }
         for (int i = 0; i < errors; i++) {
-            String errorWord = "";
-            int wordLength = 5 + ran.nextInt(10);
-            for (int j = 0; j < wordLength; j++) {
-                char letter = (char) (97 + ran.nextInt(26));
-                errorWord += letter;
-            }
-            text += errorWord;
+            text += getRandomErrorWord();
             text += " ";
         }
         return text;
@@ -103,25 +113,34 @@ public class TextFactory {
      */
     public String addErrorsToText(String text, int errors) {
         String[] wordlist = text.split(" ");
-        Random ran = new Random();
         for (int i = 0; i < errors; i++) {
-            String errorWord = "";
-            int wordLength = 5 + ran.nextInt(10);
-            for (int j = 0; j < wordLength; j++) {
-                char letter = (char) (97 + ran.nextInt(26));
-                errorWord += letter;
-            }
-            wordlist[i] = errorWord;
+            wordlist[i] = getRandomErrorWord();
         }
         String resultText = "";
         for (int i = 0; i < wordlist.length; i++) {
-            if (wordlist[i].equals(" ")) {
-                continue;
-            }
             resultText += wordlist[i];
             resultText += " ";
         }
         return resultText;
+    }
+
+    /**
+     * Get a randomly formed error word. Random picks random integers from
+     * between 97 to 122. These are changed into characters and then added to
+     * the word. The word length is picked randomly and should be 5-15
+     * characters.
+     *
+     * @return the randomly formed word
+     */
+    public String getRandomErrorWord() {
+        Random ran = new Random();
+        String errorWord = "";
+        int wordLength = 5 + ran.nextInt(11);
+        for (int j = 0; j < wordLength; j++) {
+            char letter = (char) (97 + ran.nextInt(26));
+            errorWord += letter;
+        }
+        return errorWord;
     }
 
     /**

@@ -32,6 +32,12 @@ public class DecrypterTest {
         writer.write("shell");
         writer.write(System.getProperty("line.separator"));
         writer.write("zeiss");
+        writer.write(System.getProperty("line.separator"));
+        writer.write("p");
+        writer.write(System.getProperty("line.separator"));
+        writer.write("a");
+        writer.write(System.getProperty("line.separator"));
+        writer.write("i");
         writer.close();
         this.decrypter = new Decrypter("test_words.txt");
         this.testtext = "tifmm";
