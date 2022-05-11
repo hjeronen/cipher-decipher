@@ -25,7 +25,7 @@ jacocoTestReport {
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['util/*PerformanceTester*', 'util/*AccuracyTester*', 'ui/**'])
+            fileTree(dir: it, exclude: ['**/*Main*', 'util/*PerformanceTester*', 'util/*AccuracyTester*', 'ui/**'])
         }))
     }
 }

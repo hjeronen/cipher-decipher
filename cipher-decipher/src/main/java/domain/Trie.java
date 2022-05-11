@@ -12,10 +12,6 @@ public class Trie {
         this.root = new Node("");
     }
 
-    public Node getRoot() {
-        return this.root;
-    }
-
     /**
      * Inserts a word into the trie. Loops through the word's characters and 
      * finds the nodes that contain the character as a value. If no nodes with 

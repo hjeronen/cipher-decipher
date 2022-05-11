@@ -1,7 +1,5 @@
 package domain;
 
-import java.util.ArrayList;
-
 /**
  * Class that defines the nodes used in trie tree.
  *
@@ -9,27 +7,59 @@ import java.util.ArrayList;
 public class Node {
 
     private String value;
-    private ArrayList<Node> children;
+    private Node[] children;
     private boolean isFinal;
+    private int numberOfChildren;
 
     public Node(String value) {
         this.value = value;
-        this.children = new ArrayList<Node>();
+        this.children = new Node[5];
         this.isFinal = false;
+        this.numberOfChildren = 0;
     }
 
+    /**
+     * Add a child node. If children list is full, its size is increased.
+     *
+     * @param node the child node that is added
+     */
     public void addChild(Node node) {
-        this.children.add(node);
+        if (checkIfFull()) {
+            increaseSize();
+        }
+        this.children[this.numberOfChildren] = node;
+        this.numberOfChildren++;
     }
 
-    public ArrayList<Node> getChildren() {
-        return this.children;
+    /**
+     * Check if list containing children is full.
+     *
+     * @return true if list was full, false if not.
+     */
+    public boolean checkIfFull() {
+        return this.children.length == this.numberOfChildren + 1;
     }
 
+    /**
+     * Increase the list size by five.
+     */
+    public void increaseSize() {
+        Node[] newList = new Node[this.children.length + 5];
+        for (int i = 0; i < this.children.length; i++) {
+            newList[i] = this.children[i];
+        }
+        this.children = newList;
+    }
+
+    /**
+     * Find a child node with the specified value.
+     *
+     * @param value the value that is searched for
+     */
     public Node getChild(String value) {
-        for (Node node : this.children) {
-            if (node.getValue().equals(value)) {
-                return node;
+        for (int i = 0; i < this.children.length; i++) {
+            if (this.children[i] != null && this.children[i].getValue().equals(value)) {
+                return this.children[i];
             }
         }
         return null;

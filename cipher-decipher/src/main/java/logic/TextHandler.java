@@ -1,8 +1,12 @@
 package logic;
 
 /**
- * A class for text handling (clean out non-letter characters, form word arrays
- * etc.)
+ * A class for text handling. From original input text it will remove line
+ * breaks and non-letter characters and change characters to lower case. The
+ * modified text is broken into words and saved into word arrays. Will also find
+ * character frequencies for the ciphered text, find all unique letters and form
+ * the result text by using a decryption key. Sorter is used for sorting the
+ * words.
  */
 public class TextHandler {
 
@@ -12,6 +16,13 @@ public class TextHandler {
         this.sorter = new Sorter();
     }
 
+    /**
+     * Clean text. Removes all line breaks, numbers and special characters from
+     * the text and changes letters into lower case.
+     *
+     * @param text the input text from the user
+     * @return text in lower case and without special characters
+     */
     public String cleanText(String text) {
         String modifiedText = text.replaceAll("\\R+", " ");
         modifiedText = modifiedText.replaceAll("[0-9]", "");
@@ -50,6 +61,12 @@ public class TextHandler {
         return frequencies;
     }
 
+    /**
+     * Find all the unique characters that are used in the text.
+     *
+     * @param text text from which the characters are checked
+     * @return all the unique characters as a single String
+     */
     public String getAllUsedCharacters(String text) {
         String characters = "";
         for (int i = 0; i < text.length(); i++) {
@@ -63,11 +80,19 @@ public class TextHandler {
         return characters;
     }
 
+    /**
+     * Break text into words and save it into an array. The words are ordered
+     * alphabetically and by length (from longest to shortest). Empty spaces and
+     * duplicate words are cleaned out.
+     *
+     * @param text the text that is broken into words
+     * @param maxTextLength the maximum amount of characters that should not be
+     * exceeded
+     * @return an array of words from the text
+     */
     public String[] getWordListString(String text, int maxTextLength) {
         String[] temp = text.split(" ");
-        // sort words alphabetically and from longest to shortest
         this.sorter.sortWords(temp);
-        // cleaning out extra spaces and duplicate words
         int length = 0;
         int count = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -91,9 +116,6 @@ public class TextHandler {
             if (index >= count) {
                 break;
             }
-            if (temp[i].equals("")) {
-                break;
-            }
             if (i > 0 && temp[i].equals(temp[i - 1])) {
                 continue;
             }
@@ -103,6 +125,12 @@ public class TextHandler {
         return words;
     }
 
+    /**
+     * Copy words from a list to a StringBuilder array.
+     *
+     * @param list the list of words that is copied
+     * @return a StringBuilder array of words from the list
+     */
     public StringBuilder[] copyWordListToStringBuilder(String[] list) {
         // words-list has words where substitutions are tried on
         StringBuilder[] words = new StringBuilder[list.length];
@@ -114,7 +142,8 @@ public class TextHandler {
 
     /**
      * Form result text. Change the original ciphered characters into the found
-     * key values.
+     * key values. Non-letters are added as they are. For upper vase characters,
+     * keys are changed to uppercase as well.
      *
      * @param text original ciphered text
      * @return text with ciphered characters changed to key values
@@ -123,20 +152,16 @@ public class TextHandler {
         String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         String resultText = "";
         for (int i = 0; i < text.length(); i++) {
-            // non-letters are added as they are
             if (!abc.contains("" + text.charAt(i))) {
                 resultText += text.charAt(i);
                 continue;
             }
-            // ciphered character
             char character = text.charAt(i);
-            // for uppercase characters, change key to uppercase too (keys are saved in and for lower case)
             if (Character.isUpperCase(character)) {
                 char c = substitutions[Character.toLowerCase(character)];
                 resultText += Character.toUpperCase(c);
                 continue;
             }
-            // add into result text the key for character
             resultText += substitutions[character];
         }
         return resultText;

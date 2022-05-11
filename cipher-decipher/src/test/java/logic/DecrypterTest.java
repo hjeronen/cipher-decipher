@@ -61,6 +61,13 @@ public class DecrypterTest {
 
         assertEquals(expected, result);
     }
+    
+    @Test
+    public void textWithNoAlphabeticalCharactersIsReturnedAsItIs() {
+        String test = "/.&%   +?!";
+        String result = this.decrypter.decrypt(test);
+        assertEquals(test, result);
+    }
 
     @Test
     public void linebreaksAreIgnored() {
