@@ -2,7 +2,7 @@
 
 The unit testing is done using JUnit and can be run from the IDE or from command line. Test coverage is monitored using Jacoco.
 
-The performance tests are done with the class PerformanceTester, and they can only be run from the GUI by pressing the button 'Performance tests'. The results are printed in the output text field. Running these will take 45 minutes.
+The performance tests are done with the class PerformanceTester, and accuracy tests with AccuracyTester. They can both only be run from the GUI by pressing the button 'Performance tests' or 'Accuracy tests'. The results are printed in the output text field eventually, but running these will take couple hours.
 
 ## Unit tests
 
@@ -44,9 +44,9 @@ The Crypter class is used only for testing. It will form a cipher key and encryp
 ### Test coverage
 The current test coverage can be seen below:
 
-![test_coverage_old](https://user-images.githubusercontent.com/73843204/167850899-857d7755-9c56-482a-abcb-487eb648ab50.png)
+![test_coverage](https://user-images.githubusercontent.com/73843204/167919759-89657cef-2f62-47e4-a6eb-695058d840e4.png)
 
-The ui package, Main class, the PerformanceTester and the AccuracyTester are not included in the test report. Getters and setters in other classes are not tested.
+The ui package, Main class, the PerformanceTester and the AccuracyTester are not included in the test report. Getters and setters in other classes are not tested, they are only used in unit testing.
 
 ## Performance and Accuracy testing
 The performance and accuracy testing is done using PerformanceTester and AccuracyTester classes. Both use TextFactory and Crypter classes for forming random test texts and encrypting them. The test texts are formed by picking random words from a word list (the same that is used for the actual program) and adding randomly formed error words to the text. The text is then encrypted and given to the Decrypter for decryption, and the computing time or accuracy of decryption with the original text is then measured and saved to an array. At the end, the average values of each test case are set into the output text field in the GUI.
@@ -63,29 +63,34 @@ The decryption time depends largely on the amount of error words, but can still 
 #### Key finding times for test texts without errors
 ````````````````````````````````````````````
 When all words are found in the dictionary: 
-60 words average time ms: 225
-100 words average time ms: 132
-500 words average time ms: 156
-1000 words average time ms: 268
-5000 words average time ms: 239
-10000 words average time ms: 145
+60 words average time ms: 279     min 1 max 631
+100 words average time ms: 256    min 35 max 634
+500 words average time ms: 45     min 2 max 134
+1000 words average time ms: 185   min 9 max 446
+5000 words average time ms: 214   min 17 max 452
+10000 words average time ms: 210  min 9 max 446
 ````````````````````````````````````````````
-A new text is formed for each iteration, and then its decryption time is measured 11 times and a median of these times is saved into the array - the results show the mean of the medians of all the texts.
+A new text is formed for each iteration, and then its decryption time is measured 11 times and a median of these times is saved into the array - the results show the mean of the medians of all the texts, and the smallest and largest times of the whole array.
+
+The times are measured with System.nanotime(), but they are printed out in milliseconds. The decryption time varies a lot between the texts. I believe this might be due to what kind of words there are in the text and how well the cipher character frequencies match the expected frequencies. If some text has only small words, decrypting it might take a longer time, because small words have several possible translations and only few keys are discovered with each word, which then leads to more recursive calls if the first guesses are not right. Starting the decryption with long words decreases the decryption time significantly, because longer words tend to have fewer possible translations and several keys can be found with just one word, so there would be fewer calls of the recursive function.
 
 The maximum length of text (the sum of the lengths of the words in word arrays) that is handled in the recursive function is 2000 characters. Therefore the time the recursive decryption function uses should not increase that much with longer texts. The text preprocessing might slightly increase the computing time as a whole, since the text is broken into word arrays that are sorted (the sorting function's time complexity is O(n log n)), but these times are not measured here.
 
 #### Key finding times for random test texts with errors
 ``````````````````````````````````````````
 All random error texts: 
-0 errors average time ms: 193
-5 errors average time ms: 326
-10 errors average time ms: 658
-15 errors average time ms: 12107
-20 errors average time ms: 11565
+0 errors average time ms: 200     min 4 max 823
+5 errors average time ms: 1003    min 9 max 8301
+10 errors average time ms: 878    min 36 max 2152
+15 errors average time ms: 10790  min 6397 max 14363
+20 errors average time ms: 9445   min 5997 max 12165
+25 errors average time ms: 31049  min 25952 max 28605
 ``````````````````````````````````````````
-All the texts with errors used in the tests have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. An error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 5-15 characters (this is also determined randomly) - I thought this would be a good approximation of general cases. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is repeated 11 times for each instance, with a new random text formed for every decryption - the time for a single text is measured 10 times, and a median is taken from these.
+All the texts with errors used in the tests have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. An error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 5-15 characters (this is also determined randomly) - I thought this would be a good approximation of general cases. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is performed 10 times for each test case, with a new random text formed for every decryption - the time for a single text is measured 11 times, and a median is taken from these. The average value above is the mean of all medians.
 
-The number of error words increases performance time, as does the length of the text. Here all the test texts are of the same length, but below are times for texts with different length and same amount of errors.
+In general it can be stated that the amount of errors increases the decryption time. It is a bit odd that average time for texts with 5 errors is larger than for a text with 10 errors, and 15 errors time is larger than 20 errors - but the times vary a lot for different texts, which propably skewes the results. The time for 25 errors is expected to be rather high because there the initial error margin 10% is not enough, and attempting a decryption with a hint too small error margin takes some time. In this case, the 10% error margin is doubled, and the decryption is attempted again. The amount of errors allowed is then decreased until reaching the limit where decryption does not work again, and too small error margin is attempted for the second time, which increases performance time.
+
+So the number of error words increases performance time, as does the length of the text. Here all the test texts are of the same length, but below are times for texts with different lengths and same amount of errors.
 
 #### Key finding times for random texts with different length and same amount of errors
 ``````````````````````````````````````````
@@ -102,7 +107,18 @@ Run times for the same text with increasing number of errors:
 15 errors average time ms: 6743
 20 errors average time ms: 2714
 ````````````````````````````````````````````
-Here are the times for the same text with increasing number of errors. The text has 200 words. The time for each case is measured 10 times. Looking at the times measured for texts with 0 errors, this one has a rather long decryption time as baseline, 802 ms when the average for 10000 words was 145 ms. As mentioned, the decryption time varies a lot for different texts.
+Here are the times for the same text with increasing number of errors. The text has 200 words. The time for each case is measured 10 times. Looking at the times measured for texts with 0 errors, this one has a rather long decryption time as baseline, 802 ms when the average for 10000 words was 145 ms. As mentioned, the decryption time varies a lot for different texts. It is also curious how the decryption time is lower for 20 errors than for 15 errors.
+
+I also ran the texts for second time and got very different results:
+````````````````````````````````````````````
+Run times for the same text with increasing number of errors: 
+0 errors average time ms: 27      min 27 max 28
+5 errors average time ms: 31      min 31 max 32
+10 errors average time ms: 11638  min 11627 max 11654
+15 errors average time ms: 2916   min 2911 max 2921
+20 errors average time ms: 2576   min 2568 max 2591
+````````````````````````````````````````````
+Here the initial decryption time is very short, and suddenly increases with 10 errors. I'm not sure what happened here, or why the time decreases after that - probably because of how the error words are distributed among the normal words. The overall time mostly depends on how fast the algorithm determines the last used error margin is too small, and this is discovered faster with some texts than with others.
 
 ### The error margin
 The times here are measured up to the 10% error margin. The dictionary that is used is very large (around 400 000 english words), so the error margin should not be very large for an average cipher text. This is of course very case sensitive. For any 'normal' text, almost all the words should be found in the dictionary, barring any misspelled words. In manual testing when trying decrypting more exotic texts (such as the Star Wars -texts in [sample texts](https://github.com/hjeronen/cipher-decipher/blob/main/cipher-decipher/sample_texts.md)) the 10 percent error margin works surprisingly well.
@@ -113,10 +129,10 @@ The AccuracyTester class implements accuracy tests that check the average accura
 ``````````````````````````````````````````
 Average accuracies:
 texts with 0 errors: 1.0
-texts with 5 errors: 0.9993485342019544
-texts with 12 errors: 1.0
-texts with 14 errors: 0.9981873215462332
-texts with 21 errors: 0.9994742376445845
+texts with 5 errors: 1.0
+texts with 12 errors: 0.999
+texts with 14 errors: 0.999
+texts with 21 errors: 1.0
 ``````````````````````````````````````````
 The accuracy of decryptions is rather good, but there are a couple situations where problems arise and mistranslations happen.
 
