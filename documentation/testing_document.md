@@ -60,6 +60,18 @@ The tests are run for randomly formed ciphertexts of varying length or with incr
 
 The decryption time depends largely on the amount of error words, but can still vary a lot between different texts. For this reason, using only one text for one test case might be very misleading. In the following tests, a random text is generated for each iteration. The time for decrypting a text is measured several times, and the median of these times is saved into the times array - then an average is counted from the medians of all the different texts of each test case.
 
+#### Text preprocessing times
+Here are average text preprocessig times in nanoseconds:
+````````````````````````````````````````````
+60 words average 178470 ns
+100 words average 108420 ns
+500 words average 241460 ns
+1000 words average 917510 ns
+5000 words average 9259390 ns
+10000 words average 32999600 ns
+````````````````````````````````````````````
+This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time.
+
 #### Key finding times for test texts without errors
 ````````````````````````````````````````````
 When all words are found in the dictionary: 
