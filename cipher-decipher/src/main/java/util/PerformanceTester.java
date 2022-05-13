@@ -1,6 +1,6 @@
 package util;
 
-import logic.Decrypter;
+import java.util.Arrays;
 import logic.KeyFinder;
 import logic.TextHandler;
 
@@ -10,26 +10,25 @@ import logic.TextHandler;
  */
 public class PerformanceTester implements Tester {
 
-    private Decrypter decrypter;
     private KeyFinder keyFinder;
     private TextHandler textHandler;
     private TextFactory textFactory;
 
+    // preprocessing times
+    private long[] preprocessingTimes;
+    private int[] words;
+
+    // word lookup times
+    private long[] wordLookupTimes;
+    private String[] testWords;
+
     // runtimes for texts without errors
-    private long[] runtimes60words;
-    private long[] runtimes100words;
-    private long[] runtimes500words;
-    private long[] runtimes1000words;
-    private long[] runtimes5000words;
-    private long[] runtimes10000words;
+    private long[][] runtimesForTextsWithNoErrors;
 
     // texts with errors, with new text randomly formed for each iteration
     // then decrypted multiple times and average time saved into array
-    private long[] runtimesRandom0Errors;
-    private long[] runtimesRandom5Errors;
-    private long[] runtimesRandom10Errors;
-    private long[] runtimesRandom15Errors;
-    private long[] runtimesRandom20Errors;
+    private long[][] runtimesForRandomTextsWithErrors;
+    private int[] errors;
 
     // same text with increasing number of errors
     private long[] runtimes0Errors;
@@ -38,17 +37,16 @@ public class PerformanceTester implements Tester {
     private long[] runtimes15Errors;
     private long[] runtimes20Errors;
 
-    // texts with different length and 10 % errors
+    // texts with different length and 20 errors
     private long[] runtimesWithErrors60Words;
     private long[] runtimesWithErrors100Words;
     private long[] runtimesWithErrors200Words;
     private long[] runtimesWithErrors500Words;
 
-    public PerformanceTester(Decrypter d, KeyFinder keyFinder, TextHandler textHandler, TextFactory tf) {
-        this.decrypter = d;
+    public PerformanceTester(KeyFinder keyFinder, TextHandler textHandler, TextFactory textFactory) {
         this.keyFinder = keyFinder;
         this.textHandler = textHandler;
-        this.textFactory = tf;
+        this.textFactory = textFactory;
     }
 
     /**
@@ -58,18 +56,17 @@ public class PerformanceTester implements Tester {
      * of the result arrays
      */
     public void setup(int repeats) {
-        this.runtimes60words = new long[repeats];
-        this.runtimes100words = new long[repeats];
-        this.runtimes500words = new long[repeats];
-        this.runtimes1000words = new long[repeats];
-        this.runtimes5000words = new long[repeats];
-        this.runtimes10000words = new long[repeats];
+        this.words = new int[]{60, 100, 500, 1000, 5000, 10000};
+        this.preprocessingTimes = new long[this.words.length];
 
-        this.runtimesRandom0Errors = new long[repeats];
-        this.runtimesRandom5Errors = new long[repeats];
-        this.runtimesRandom10Errors = new long[repeats];
-        this.runtimesRandom15Errors = new long[repeats];
-        this.runtimesRandom20Errors = new long[repeats];
+        // test words lengths 1, 4, 10, 19
+        this.testWords = new String[]{"a", "word", "cumbersome", "nonmeteorologically"};
+        this.wordLookupTimes = new long[testWords.length];
+
+        this.runtimesForTextsWithNoErrors = new long[this.words.length][3];
+
+        this.errors = new int[]{5, 10, 15, 20, 25};
+        this.runtimesForRandomTextsWithErrors = new long[this.errors.length][3];
 
         this.runtimes0Errors = new long[repeats];
         this.runtimes5Errors = new long[repeats];
@@ -81,6 +78,103 @@ public class PerformanceTester implements Tester {
         this.runtimesWithErrors100Words = new long[repeats];
         this.runtimesWithErrors200Words = new long[repeats];
         this.runtimesWithErrors500Words = new long[repeats];
+    }
+
+    /**
+     * Get runtimes for all test cases.
+     *
+     * @param texts how many times the test is repeated with a new text
+     * @param iterations the number of times the test is performed for a single
+     * text
+     */
+    public void getAllRuntimes(int texts, int iterations) {
+        getAllPreprocessingTimes(iterations);
+        getWordLookupTimes(iterations);
+        getTimesForTextsWithNoErrors(texts, iterations);
+        getTimesForRandomTextsWithErrors(texts, iterations);
+        getTimesForSameTextWithIncreasingNumberOfErrors();
+        getTimesForTextsWith20Errors(iterations);
+    }
+
+    /**
+     * Get all the preprocessing times for texts.
+     *
+     * @param iterations the number of times the test is performed for a single
+     * text
+     */
+    public void getAllPreprocessingTimes(int iterations) {
+        System.out.println("getting preprocessing times");
+        for (int i = 0; i < this.preprocessingTimes.length; i++) {
+            this.preprocessingTimes[i] = getPreprocessingTime(this.words[i], iterations);
+        }
+        System.out.println(getPreprocessingTimesResults());
+    }
+
+    /**
+     * Get median preprocessing time for a text.
+     *
+     * @param numberOfWords the number of words in the text
+     * @param iterations the number of times the test is performed for a single
+     * text
+     * @return the median of the measured preprocessing times
+     */
+    public long getPreprocessingTime(int numberOfWords, int iterations) {
+        String text = this.textFactory.formRandomText(numberOfWords, 0);
+        String cipher = this.textFactory.formCipher(text);
+
+        long[] times = new long[iterations];
+        for (int i = 0; i < times.length; i++) {
+            long start = System.nanoTime();
+            String cipherLetters = this.textHandler.getAllUsedCharacters(cipher);
+            double[] cipherFrequencies = this.textHandler.findCharacterFrequencies(cipher);
+            String[] cipherwords = this.textHandler.getWordListString(cipher, 2000);
+            StringBuilder[] substitutionwords = this.textHandler.copyWordListToStringBuilder(cipherwords);
+            long stop = System.nanoTime();
+            times[i] = stop - start;
+        }
+        Arrays.sort(times);
+        return times[times.length / 2];
+    }
+
+    /**
+     * Get times for searching words from the dictionary.
+     *
+     * @param iterations how many times the time is taken for lookgin up the
+     * same word
+     */
+    public void getWordLookupTimes(int iterations) {
+        for (int i = 0; i < this.wordLookupTimes.length; i++) {
+            long[] times = new long[iterations];
+            for (int j = 0; j < times.length; j++) {
+                long start = System.nanoTime();
+                this.keyFinder.findWord(this.testWords[i]);
+                long stop = System.nanoTime();
+                times[j] = stop - start;
+            }
+            Arrays.sort(times);
+            this.wordLookupTimes[i] = times[times.length / 2];
+        }
+        System.out.println(getWordLookupTimesResults());
+    }
+
+    /**
+     * Get runtimes for when all words are found in the dictionary.
+     *
+     * @param texts how many times the test is repeated with a new text
+     * @param iterations the number of times the test is performed for single
+     * text
+     */
+    public void getTimesForTextsWithNoErrors(int texts, int iterations) {
+        System.out.println("getting times without errors");
+        long[] medianTimes = new long[texts];
+        for (int i = 0; i < this.runtimesForTextsWithNoErrors.length; i++) {
+            getKeyFindingTimesForRandomTexts(medianTimes, this.words[i], 0, iterations);
+            this.runtimesForTextsWithNoErrors[i][0] = getAverage(medianTimes);
+            Arrays.sort(medianTimes);
+            this.runtimesForTextsWithNoErrors[i][1] = medianTimes[0];
+            this.runtimesForTextsWithNoErrors[i][2] = medianTimes[medianTimes.length - 1];
+        }
+        System.out.println(getResultsForTextsWithNoErrors());
     }
 
     /**
@@ -103,7 +197,7 @@ public class PerformanceTester implements Tester {
             long[] timesForOneText = new long[iterations];
             keyFindingTimesForTheSameText(timesForOneText, cipher);
 
-            times[i] = getAverage(timesForOneText);
+            times[i] = getMedian(timesForOneText);
         }
     }
 
@@ -121,60 +215,31 @@ public class PerformanceTester implements Tester {
         StringBuilder[] words = this.textHandler.copyWordListToStringBuilder(cipherwords);
 
         for (int i = 0; i < times.length; i++) {
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             char[] key = this.keyFinder.findKey(cipherwords, words, cipherLetters, cipherFrequencies);
-            long stop = System.currentTimeMillis();
+            long stop = System.nanoTime();
             times[i] = stop - start;
         }
     }
 
     /**
-     * Get runtimes for all test cases.
-     *
-     * @param iterations the number of times the test is performed for single
-     * text
-     */
-    public void getAllRuntimes(int iterations) {
-        getTimesForTextsWithNoErrors(iterations);
-        getTimesForRandomTextsWithErrors(iterations);
-        getTimesForSameTextWithIncreasingNumberOfErrors();
-        getTimesFor10PercentErrors(iterations);
-    }
-
-    /**
-     * Get runtimes for when all words are found in the dictionary.
-     * 
-     * @param iterations the number of times the test is performed for single
-     * text
-     */
-    public void getTimesForTextsWithNoErrors(int iterations) {
-        System.out.println("getting times without errors");
-        getKeyFindingTimesForRandomTexts(this.runtimes60words, 60, 0, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimes100words, 100, 0, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimes500words, 500, 0, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimes1000words, 1000, 0, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimes5000words, 5000, 0, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimes10000words, 10000, 0, iterations);
-    }
-
-    /**
      * Get runtimes with randomly formed texts and error words.
-     * 
+     *
+     * @param texts how many times the test is repeated with a new text
      * @param iterations the number of times the test is performed for single
      * text
      */
-    public void getTimesForRandomTextsWithErrors(int iterations) {
+    public void getTimesForRandomTextsWithErrors(int texts, int iterations) {
         System.out.println("getting times for random texts with errors");
-        System.out.println("0 errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesRandom0Errors, 100, 0, iterations);
-        System.out.println("5 errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesRandom5Errors, 100, 5, iterations);
-        System.out.println("10 errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesRandom10Errors, 100, 10, iterations);
-        System.out.println("15 errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesRandom15Errors, 100, 15, iterations);
-        System.out.println("20 errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesRandom20Errors, 100, 20, iterations);
+        long[] medianTimes = new long[texts];
+        for (int i = 0; i < this.runtimesForRandomTextsWithErrors.length; i++) {
+            getKeyFindingTimesForRandomTexts(medianTimes, 200, this.errors[i], iterations);
+            this.runtimesForRandomTextsWithErrors[i][0] = getAverage(medianTimes);
+            Arrays.sort(medianTimes);
+            this.runtimesForRandomTextsWithErrors[i][1] = medianTimes[0];
+            this.runtimesForRandomTextsWithErrors[i][2] = medianTimes[medianTimes.length - 1];
+        }
+        System.out.println(getResultsForRandomErrorTexts());
     }
 
     /**
@@ -184,44 +249,47 @@ public class PerformanceTester implements Tester {
         System.out.println("getting times for same text with increasin number of errors");
         String text = this.textFactory.formRandomText(200, 0);
         String cipher = this.textFactory.formCipher(text);
-        System.out.println("0 errors");
-        keyFindingTimesForTheSameText(this.runtimes0Errors, cipher);
-        text = this.textFactory.addErrorsToText(text, 5);
-        cipher = this.textFactory.formCipher(text);
-        System.out.println("5 errors");
-        keyFindingTimesForTheSameText(this.runtimes5Errors, cipher);
-        text = this.textFactory.addErrorsToText(text, 10);
-        cipher = this.textFactory.formCipher(text);
-        System.out.println("10 errors");
-        keyFindingTimesForTheSameText(this.runtimes10Errors, cipher);
-        text = this.textFactory.addErrorsToText(text, 15);
-        cipher = this.textFactory.formCipher(text);
-        System.out.println("15 errors");
-        keyFindingTimesForTheSameText(this.runtimes15Errors, cipher);
-        text = this.textFactory.addErrorsToText(text, 20);
-        cipher = this.textFactory.formCipher(text);
-        System.out.println("20 errors");
-        keyFindingTimesForTheSameText(this.runtimes20Errors, cipher);
+        long[][] allArrays = new long[][]{this.runtimes0Errors, this.runtimes5Errors, this.runtimes10Errors, this.runtimes15Errors, this.runtimes20Errors};
+        int[] howManyErrors = new int[]{5, 10, 15, 20};
+        for (int i = 0; i < allArrays.length; i++) {
+            keyFindingTimesForTheSameText(allArrays[i], cipher);
+            text = this.textFactory.addErrorsToText(text, howManyErrors[i]);
+            cipher = this.textFactory.formCipher(text);
+        }
+        System.out.println(getResultsForTheSameTextWithIncreasingNumberOfErrors());
     }
 
     /**
      * Get runtimes for increasing number of words and 10 % errors.
-     * 
+     *
      * @param iterations the number of times the test is performed for single
      * text
      */
-    public void getTimesFor10PercentErrors(int iterations) {
-        System.out.println("getting times with 10 % errors");
-        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors60Words, 60, 6, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors100Words, 100, 10, iterations);
+    public void getTimesForTextsWith20Errors(int iterations) {
+        System.out.println("getting times for texts with 20 errors");
+        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors60Words, 60, 20, iterations);
+        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors100Words, 100, 20, iterations);
         getKeyFindingTimesForRandomTexts(this.runtimesWithErrors200Words, 200, 20, iterations);
-        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors500Words, 500, 50, iterations);
+        getKeyFindingTimesForRandomTexts(this.runtimesWithErrors500Words, 500, 20, iterations);
+        System.out.println(getResultsForTextsWithSameNumberOfErrors());
+    }
+
+    /**
+     * Get the median value from a result array.
+     *
+     * @param times result array
+     * @return the median of times array values
+     */
+    public long getMedian(long[] times) {
+        Arrays.sort(times);
+        return times[times.length / 2];
     }
 
     /**
      * Count average value from a result array.
      *
      * @param times result array
+     * @return the average of times array values
      */
     public long getAverage(long[] times) {
         long sum = 0;
@@ -233,42 +301,143 @@ public class PerformanceTester implements Tester {
 
     @Override
     public void run() {
-        int arrayLength = 10;
-        int numberOfIterations = 10;
-        setup(arrayLength);
-        getAllRuntimes(numberOfIterations);
+        int testRepeats = 10;
+        int numberOfIterationsForSingleText = 11;
+        setup(testRepeats);
+        getAllRuntimes(testRepeats, numberOfIterationsForSingleText);
     }
 
     @Override
     public String getResults() {
         String r = "";
+        r += getPreprocessingTimesResults();
+        r += "\n";
+        r += getWordLookupTimesResults();
+        r += "\n";
+        r += getResultsForTextsWithNoErrors();
+        r += "\n";
+        r += getResultsForRandomErrorTexts();
+        r += "\n";
+        r += getResultsForRandomErrorTexts();
+        r += "\n";
+        r += getResultsForTextsWithSameNumberOfErrors();
+        return r;
+    }
+
+    /**
+     * Get the preprocessing times as a string.
+     *
+     * @return the results as a string
+     */
+    public String getPreprocessingTimesResults() {
+        String r = "Preprocessing times: " + "\n";
+        for (int i = 0; i < this.preprocessingTimes.length; i++) {
+            r += this.words[i] + " words median " + this.preprocessingTimes[i] + " ns" + "\n";
+        }
+        return r;
+    }
+
+    public String getWordLookupTimesResults() {
+        String r = "Searching a word from trie times: " + "\n";
+        for (int i = 0; i < this.wordLookupTimes.length; i++) {
+            r += "for word of length " + this.testWords[i].length() + " the median time was " + this.wordLookupTimes[i] + " ns" + "\n";
+        }
+        return r;
+    }
+
+    /**
+     * Get the results for texts with no errors as a string.
+     *
+     * @return the results as a string
+     */
+    public String getResultsForTextsWithNoErrors() {
+        String r = "";
         r += "When all words are found in the dictionary: " + "\n";
-        r += "60 words average time ms: " + getAverage(this.runtimes60words) + "\n";
-        r += "100 words average time ms: " + getAverage(this.runtimes100words) + "\n";
-        r += "500 words average time ms: " + getAverage(this.runtimes500words) + "\n";
-        r += "1000 words average time ms: " + getAverage(this.runtimes1000words) + "\n";
-        r += "5000 words average time ms: " + getAverage(this.runtimes5000words) + "\n";
-        r += "10000 words average time ms: " + getAverage(this.runtimes10000words) + "\n";
-        r += "\n";
+        for (int i = 0; i < this.runtimesForTextsWithNoErrors.length; i++) {
+            r += this.words[i] + " words average time ms: " + this.runtimesForTextsWithNoErrors[i][0] / 1000000 + " min " + this.runtimesForTextsWithNoErrors[i][1] / 1000000 + " max " + this.runtimesForTextsWithNoErrors[i][2] / 1000000 + "\n";
+        }
+        return r;
+    }
+
+    /**
+     * Get the results for random error texts as a string.
+     *
+     * @return the results as a string
+     */
+    public String getResultsForRandomErrorTexts() {
+        String r = "";
         r += "All random error texts: " + "\n";
-        r += "0 errors average time ms: " + getAverage(this.runtimesRandom0Errors) + "\n";
-        r += "5 errors average time ms: " + getAverage(this.runtimesRandom5Errors) + "\n";
-        r += "10 errors average time ms: " + getAverage(this.runtimesRandom10Errors) + "\n";
-        r += "15 errors average time ms: " + getAverage(this.runtimesRandom15Errors) + "\n";
-        r += "20 errors average time ms: " + getAverage(this.runtimesRandom20Errors) + "\n";
-        r += "\n";
+        for (int i = 0; i < this.runtimesForRandomTextsWithErrors.length; i++) {
+            r += this.errors[i] + " errors average time ms: " + this.runtimesForRandomTextsWithErrors[i][0] / 1000000 + " min " + this.runtimesForRandomTextsWithErrors[i][1] / 1000000 + " max " + this.runtimesForRandomTextsWithErrors[i][2] / 1000000 + "\n";
+        }
+        return r;
+    }
+
+    /**
+     * Get the results for the same text with increasing number of errors as a
+     * string.
+     *
+     * @return the results as a string
+     */
+    public String getResultsForTheSameTextWithIncreasingNumberOfErrors() {
+        Arrays.sort(this.runtimes0Errors);
+        Arrays.sort(this.runtimes5Errors);
+        Arrays.sort(this.runtimes10Errors);
+        Arrays.sort(this.runtimes15Errors);
+        Arrays.sort(this.runtimes20Errors);
+        String r = "";
+        long[] times = this.runtimes0Errors;
+        long min = times[0] / 1000000;
+        long max = times[times.length - 1] / 1000000;
         r += "Run times for the same text with increasing number of errors: " + "\n";
-        r += "0 errors average time ms: " + getAverage(this.runtimes0Errors) + "\n";
-        r += "5 errors average time ms: " + getAverage(this.runtimes5Errors) + "\n";
-        r += "10 errors average time ms: " + getAverage(this.runtimes10Errors) + "\n";
-        r += "15 errors average time ms: " + getAverage(this.runtimes15Errors) + "\n";
-        r += "20 errors average time ms: " + getAverage(this.runtimes20Errors) + "\n";
-        r += "\n";
-        r += "Run times for texts with 10 % errors: " + "\n";
-        r += "60 words average time ms: " + getAverage(this.runtimesWithErrors60Words) + "\n";
-        r += "100 words errors average time ms: " + getAverage(this.runtimesWithErrors100Words) + "\n";
-        r += "200 words errors average time ms: " + getAverage(this.runtimesWithErrors200Words) + "\n";
-        r += "500 words errors average time ms: " + getAverage(this.runtimesWithErrors500Words);
+        r += "0 errors average time ms: " + getAverage(this.runtimes0Errors) + " min " + min + " max " + max + "\n";
+        times = this.runtimes5Errors;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "5 errors average time ms: " + getAverage(this.runtimes5Errors) + " min " + min + " max " + max + "\n";
+        times = this.runtimes10Errors;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "10 errors average time ms: " + getAverage(this.runtimes10Errors) + " min " + min + " max " + max + "\n";
+        times = this.runtimes15Errors;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "15 errors average time ms: " + getAverage(this.runtimes15Errors) + " min " + min + " max " + max + "\n";
+        times = this.runtimes20Errors;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "20 errors average time ms: " + getAverage(this.runtimes20Errors) + " min " + min + " max " + max + "\n";
+        return r;
+    }
+
+    /**
+     * Get the results for texts with same number of errors as a string.
+     *
+     * @return the results as a string
+     */
+    public String getResultsForTextsWithSameNumberOfErrors() {
+        Arrays.sort(this.runtimesWithErrors60Words);
+        Arrays.sort(this.runtimesWithErrors100Words);
+        Arrays.sort(this.runtimesWithErrors200Words);
+        Arrays.sort(this.runtimesWithErrors500Words);
+        String r = "";
+        long[] times = this.runtimesWithErrors60Words;
+        long min = times[0] / 1000000;
+        long max = times[times.length - 1] / 1000000;
+        r += "Run times for texts with 20 errors: " + "\n";
+        r += "60 words average time ms: " + getAverage(this.runtimesWithErrors60Words) + " min " + min + " max " + max + "\n";
+        times = this.runtimesWithErrors100Words;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "100 words errors average time ms: " + getAverage(this.runtimesWithErrors100Words) + " min " + min + " max " + max + "\n";
+        times = this.runtimesWithErrors200Words;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "200 words errors average time ms: " + getAverage(this.runtimesWithErrors200Words) + " min " + min + " max " + max + "\n";
+        times = this.runtimesWithErrors500Words;
+        min = times[0] / 1000000;
+        max = times[times.length - 1] / 1000000;
+        r += "500 words errors average time ms: " + getAverage(this.runtimesWithErrors500Words) + " min " + min + " max " + max;
         return r;
     }
 }

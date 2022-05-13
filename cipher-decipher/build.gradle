@@ -29,5 +29,11 @@ jacocoTestReport {
         }))
     }
 }
+jar {
+    manifest {
+        attributes 'Main-Class': 'cipher.decipher.Main'
+    }
+}
+
 
 check.dependsOn jacocoTestReport

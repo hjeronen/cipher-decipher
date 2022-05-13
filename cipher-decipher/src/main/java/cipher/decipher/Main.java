@@ -18,7 +18,7 @@ public class Main {
         Decrypter decrypter = new Decrypter(filename);
         Crypter crypter = new Crypter();
         TextFactory textFactory = new TextFactory(filename, crypter);
-        PerformanceTester ptester = new PerformanceTester(decrypter, decrypter.getKeyFinder(), decrypter.getTextHandler(), textFactory);
+        PerformanceTester ptester = new PerformanceTester(decrypter.getKeyFinder(), decrypter.getTextHandler(), textFactory);
         AccuracyTester atester = new AccuracyTester(decrypter, textFactory);
         
         GUI gui = new GUI(decrypter, ptester, atester);
