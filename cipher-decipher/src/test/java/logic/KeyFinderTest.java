@@ -1,21 +1,22 @@
 package logic;
 
 import domain.Trie;
-import java.io.File;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class KeyFinderTest {
 
     private KeyFinder keyFinder;
+    private String dictionaryFilename = "/dictionary.txt";
 
     public KeyFinderTest() {
         Trie dictionary = new Trie();
-        try {
-            Scanner reader = new Scanner(new File("dictionary_long.txt"));
-            while (reader.hasNext()) {
-                String word = reader.nextLine();
+        try ( InputStream in = getClass().getResourceAsStream(this.dictionaryFilename);  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String word;
+            while ((word = reader.readLine()) != null) {
                 if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
                     continue;
                 }

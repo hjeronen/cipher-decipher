@@ -1,9 +1,9 @@
 package util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Random;
-import java.util.Scanner;
 
 /**
  * A class that produces test texts for the tester classes.
@@ -27,39 +27,38 @@ public class TextFactory {
     private void getTestWords(String filename) {
         this.words = new String[countWords(filename)];
         int index = 0;
-        try {
-            Scanner reader = new Scanner(new File(filename));
-            while (reader.hasNext()) {
-                String word = reader.nextLine();
+        try ( InputStream in = getClass().getResourceAsStream(filename);  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String word;
+            while ((word = reader.readLine()) != null) {
                 if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
                     continue;
                 }
                 this.words[index] = word;
                 index++;
             }
-        } catch (FileNotFoundException exception) {
+        } catch (Exception exception) {
             System.out.println("File not found.");
         }
     }
 
     /**
-     * Count words in the word list. Need to know the amount of words to form the right length of list.
+     * Count words in the word list. Need to know the amount of words to form
+     * the right length of list.
      *
      * @param filename the file where the words are read from
      * @return the number of words in the file
      */
     public int countWords(String filename) {
         int count = 0;
-        try {
-            Scanner reader = new Scanner(new File(filename));
-            while (reader.hasNext()) {
-                String word = reader.nextLine();
+        try ( InputStream in = getClass().getResourceAsStream(filename);  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String word;
+            while ((word = reader.readLine()) != null) {
                 if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
                     continue;
                 }
                 count++;
             }
-        } catch (FileNotFoundException exception) {
+        } catch (Exception exception) {
             System.out.println("File not found.");
         }
         return count;

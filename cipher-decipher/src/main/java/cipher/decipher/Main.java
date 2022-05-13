@@ -14,7 +14,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        String filename = "dictionary_long.txt";
+        String filename = "/dictionary.txt";
         Decrypter decrypter = new Decrypter(filename);
         Crypter crypter = new Crypter();
         TextFactory textFactory = new TextFactory(filename, crypter);

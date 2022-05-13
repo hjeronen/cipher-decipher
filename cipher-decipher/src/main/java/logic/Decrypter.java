@@ -1,8 +1,9 @@
 package logic;
 
 import domain.Trie;
-import java.io.File;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * Class that does the decryption.
@@ -27,11 +28,11 @@ public class Decrypter {
         this.keyfinder = new KeyFinder(createDictionary(filename));
         this.maxTextLength = 2000;
     }
-    
+
     public TextHandler getTextHandler() {
         return this.texthandler;
     }
-    
+
     public KeyFinder getKeyFinder() {
         return this.keyfinder;
     }
@@ -69,10 +70,9 @@ public class Decrypter {
      */
     private Trie createDictionary(String filename) {
         Trie dictionary = new Trie();
-        try {
-            Scanner reader = new Scanner(new File(filename));
-            while (reader.hasNext()) {
-                String word = reader.nextLine();
+        try ( InputStream in = getClass().getResourceAsStream(filename);  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String word;
+            while ((word = reader.readLine()) != null) {
                 if (word.length() == 1 && !word.equals("i") && !word.equals("a")) {
                     continue;
                 }

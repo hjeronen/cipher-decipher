@@ -17,7 +17,7 @@
         <module name='RightCurly' />
         <module name='AvoidNestedBlocks' />
         <module name="NestedIfDepth">
-            <property name="max" value="2"/>
+            <property name="max" value="3"/>
         </module>
         <module name="NestedForDepth">
             <property name="max" value="2"/>
@@ -30,7 +30,7 @@
         <module name="OneStatementPerLine"/>
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>
-            <property name="max" value="20"/>
+            <property name="max" value="75"/>
             <property name="countEmpty" value="false"/>
         </module>
 

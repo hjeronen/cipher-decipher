@@ -1,15 +1,15 @@
 package util;
 
-import java.io.FileNotFoundException;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TextFactoryTest {
 
     private TextFactory textFactory;
+    private String testwordsFilename = "/test_words.txt";
 
     public TextFactoryTest() {
-        this.textFactory = new TextFactory("test_words.txt", new Crypter());
+        this.textFactory = new TextFactory(this.testwordsFilename, new Crypter());
     }
 
     @Test
@@ -25,7 +25,7 @@ public class TextFactoryTest {
 
     @Test
     public void countWordsReturnsTheRightCount() {
-        int count = this.textFactory.countWords("test_words.txt");
+        int count = this.textFactory.countWords(this.testwordsFilename);
         assertTrue(count == 6);
     }
 
