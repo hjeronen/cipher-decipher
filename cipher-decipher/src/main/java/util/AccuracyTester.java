@@ -17,6 +17,12 @@ public class AccuracyTester implements Tester {
     private double[] accuracies14Errors;
     private double[] accuracies21Errors;
 
+    /**
+     * Constructor.
+     *
+     * @param decrypter the decrypter program that is used
+     * @param tf the TextFactory that generates test texts
+     */
     public AccuracyTester(Decrypter decrypter, TextFactory tf) {
         this.decrypter = decrypter;
         this.textFactory = tf;
@@ -41,6 +47,7 @@ public class AccuracyTester implements Tester {
      * Decrypt a given text.
      *
      * @param cipher text that is to be decrypted
+     * @return the decrypted text
      */
     public String getDecryption(String cipher) {
         return this.decrypter.decrypt(cipher).toLowerCase();
@@ -51,7 +58,7 @@ public class AccuracyTester implements Tester {
      *
      * @param text original text (not encrypted)
      * @param result the result of the decryption
-     * @return percentage of matching letters between original and decrypted
+     * @return percentage of matching characters between original and decrypted
      * text
      */
     public double checkAccuracy(String text, String result) {
@@ -70,7 +77,7 @@ public class AccuracyTester implements Tester {
     }
 
     /**
-     * Run tests for given test case.
+     * Run tests for the given test case.
      *
      * @param results the array where results are saved
      * @param numberOfWords number of words in the test text
@@ -89,6 +96,7 @@ public class AccuracyTester implements Tester {
      * Count average value from a result array.
      *
      * @param results result array
+     * @return the average of the values in the results array
      */
     public double getAverage(double[] results) {
         double sum = 0;

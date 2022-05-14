@@ -8,8 +8,11 @@ import java.util.Random;
  */
 public class Crypter {
 
+    /**
+     * Constructor.
+     */
     public Crypter() {
-        
+
     }
 
     /**
@@ -37,7 +40,7 @@ public class Crypter {
     /**
      * Form key for encryption. Chooses a random letter from letters array for
      * each char from a-z in the key. The letter is then removed from the array.
-     * 
+     *
      * @return the key
      */
     public int[] formKey() {

@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * Class that does the decryption.
- *
+ * Class that does the decryption. Uses TextHandler to process the text and
+ * KeyFinder to find the key for decrypting the text.
  */
 public class Decrypter {
 

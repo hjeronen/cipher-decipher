@@ -7,7 +7,7 @@ package util;
 public interface Tester {
 
     /**
-     * Run all tests.
+     * Run all the tests.
      */
     public void run();
 

@@ -11,6 +11,10 @@ public class Node {
     private boolean isFinal;
     private int numberOfChildren;
 
+    /**
+     * Node constructor. Value of the node given as a parameter.
+     * @param value String value of the node that is created.
+     */
     public Node(String value) {
         this.value = value;
         this.children = new Node[5];

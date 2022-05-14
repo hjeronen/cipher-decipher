@@ -15,6 +15,13 @@ public class Listener implements ActionListener {
     private JTextArea input;
     private JTextArea output;
 
+    /**
+     * Constructor.
+     *
+     * @param decrypter the decrypter that is used
+     * @param input the text area from where the text is fetched
+     * @param output the text area where results are set
+     */
     public Listener(Decrypter decrypter, JTextArea input, JTextArea output) {
         this.decrypter = decrypter;
         this.input = input;

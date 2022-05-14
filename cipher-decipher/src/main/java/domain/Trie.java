@@ -8,6 +8,9 @@ public class Trie {
 
     private Node root;
 
+    /**
+     * Trie constructor. The root node is created in the constructor.
+     */
     public Trie() {
         this.root = new Node("");
     }

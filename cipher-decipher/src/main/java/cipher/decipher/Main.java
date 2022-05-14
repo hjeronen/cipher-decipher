@@ -8,6 +8,10 @@ import util.Crypter;
 import util.PerformanceTester;
 import util.TextFactory;
 
+/**
+ * Main class for the program. Execution starts here by creating the necessary
+ * classes and starting the graphical user interface.
+ */
 public class Main {
 
     /**
@@ -20,7 +24,7 @@ public class Main {
         TextFactory textFactory = new TextFactory(filename, crypter);
         PerformanceTester ptester = new PerformanceTester(decrypter.getKeyFinder(), decrypter.getTextHandler(), textFactory);
         AccuracyTester atester = new AccuracyTester(decrypter, textFactory);
-        
+
         GUI gui = new GUI(decrypter, ptester, atester);
         SwingUtilities.invokeLater(gui);
 

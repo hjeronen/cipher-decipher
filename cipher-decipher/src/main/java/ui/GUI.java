@@ -14,7 +14,7 @@ import util.AccuracyTester;
 import util.PerformanceTester;
 
 /**
- * The graphical userinterface.
+ * The graphical user interface.
  *
  */
 public class GUI implements Runnable {
@@ -24,6 +24,13 @@ public class GUI implements Runnable {
     private PerformanceTester ptester;
     private AccuracyTester atester;
 
+    /**
+     * Constructor for the GUI class.
+     *
+     * @param decrypter the decrypter program
+     * @param ptester the performance tester program
+     * @param atester the accuracy tester program
+     */
     public GUI(Decrypter decrypter, PerformanceTester ptester, AccuracyTester atester) {
         this.decrypter = decrypter;
         this.ptester = ptester;
@@ -42,6 +49,10 @@ public class GUI implements Runnable {
         this.frame.setVisible(true);
     }
 
+    /**
+     * Create the components for the JFrame.
+     *
+     */
     public void createComponents() {
         Container container = this.frame.getContentPane();
         this.frame.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));

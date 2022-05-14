@@ -12,6 +12,10 @@ public class TextHandler {
 
     private Sorter sorter;
 
+    /**
+     * Constructor for TextHandler class. Creates the sorter that is used for
+     * sorting the word lists.
+     */
     public TextHandler() {
         this.sorter = new Sorter();
     }
@@ -21,7 +25,8 @@ public class TextHandler {
      * the text and changes letters into lower case.
      *
      * @param text the input text from the user
-     * @return text in lower case and without special characters
+     * @return text in lower case and without line breaks, numbers or special
+     * characters
      */
     public String cleanText(String text) {
         String modifiedText = text.replaceAll("\\R+", " ");
@@ -32,13 +37,12 @@ public class TextHandler {
 
     /**
      * Get character frequencies in a text. Saves the frequencies in the
-     * frequencies array at the place of the character in question.
+     * frequencies array in the place of the character in question.
      *
      * @param text text in lower case and without special characters
      * @return array of character frequencies
      */
     public double[] findCharacterFrequencies(String text) {
-        // find all unique characters in text, their counts and total amount of characters, excluding spaces
         int[] counts = new int[128];
         String characters = "";
         int total = 0;
@@ -53,7 +57,6 @@ public class TextHandler {
             counts[text.charAt(i)] += 1;
         }
 
-        // save ciphertext's character frequencies
         double[] frequencies = new double[128];
         for (int i = 0; i < characters.length(); i++) {
             frequencies[characters.charAt(i)] = (double) counts[characters.charAt(i)] / total * 100;
@@ -82,8 +85,9 @@ public class TextHandler {
 
     /**
      * Break text into words and save it into an array. The words are ordered
-     * alphabetically and by length (from longest to shortest). Empty spaces and
-     * duplicate words are cleaned out.
+     * alphabetically and by length (from longest to shortest). The total length
+     * of all the words must not exceed the given maximum length. Empty spaces
+     * and duplicate words are cleaned out.
      *
      * @param text the text that is broken into words
      * @param maxTextLength the maximum amount of characters that should not be
@@ -109,7 +113,7 @@ public class TextHandler {
                 break;
             }
         }
-        // the returned wordlist
+
         String[] words = new String[count];
         int index = 0;
         for (int i = 0; i < temp.length; i++) {
@@ -142,13 +146,14 @@ public class TextHandler {
 
     /**
      * Form result text. Change the original ciphered characters into the found
-     * key values. Non-letters are added as they are. For upper vase characters,
+     * key values. Non-letters are added as they are. For upper case characters,
      * keys are changed to uppercase as well.
      *
      * @param text original ciphered text
+     * @param key the key values for ciphered characters
      * @return text with ciphered characters changed to key values
      */
-    public String formResult(String text, char[] substitutions) {
+    public String formResult(String text, char[] key) {
         String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         String resultText = "";
         for (int i = 0; i < text.length(); i++) {
@@ -158,11 +163,11 @@ public class TextHandler {
             }
             char character = text.charAt(i);
             if (Character.isUpperCase(character)) {
-                char c = substitutions[Character.toLowerCase(character)];
+                char c = key[Character.toLowerCase(character)];
                 resultText += Character.toUpperCase(c);
                 continue;
             }
-            resultText += substitutions[character];
+            resultText += key[character];
         }
         return resultText;
     }

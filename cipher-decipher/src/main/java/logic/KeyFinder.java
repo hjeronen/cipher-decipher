@@ -2,6 +2,9 @@ package logic;
 
 import domain.Trie;
 
+/**
+ * A class that finds the key for decrypting an encrypted text.
+ */
 public class KeyFinder {
 
     private Trie dictionary;
@@ -20,40 +23,52 @@ public class KeyFinder {
     private int maxErrors;
 
     private int[] errorWords;
-    
+
     private boolean workingKeyFound;
 
+    /**
+     * KeyFinder constructor. Will set the given trie as a dictionary where the
+     * words are checked. Also sets the known frequencies for letters in texts
+     * that are written in English.
+     *
+     * @param dictionary the trie where dictionary words are saved and where
+     * formed words are looked up
+     */
     public KeyFinder(Trie dictionary) {
         this.dictionary = dictionary;
         setKeyFrequencies();
     }
-    
+
     public char[] getSubstitutions() {
         return this.substitutions;
     }
-    
+
     public void setSubstitutions(char[] array) {
         this.substitutions = array;
     }
-    
+
     public void setTaken(boolean[] array) {
         this.taken = array;
     }
-    
+
     public boolean[] getTaken() {
         return this.taken;
     }
-    
+
     public void setSubstituted(boolean[] array) {
         this.substituted = array;
     }
-    
+
     public boolean[] getSubstituted() {
         return this.substituted;
     }
 
     /**
-     * Sets the typical frequencies that characters have in texts that are written in english.
+     * Sets the typical frequencies that characters have in texts that are
+     * written in english.
+     *
+     * The values are taken from here:
+     * https://www.101computing.net/frequency-analysis/
      */
     private void setKeyFrequencies() {
         String abc = "abcdefghijklmnopqrstuvwxyz";
@@ -84,10 +99,10 @@ public class KeyFinder {
             this.firstAppearances[i] = 0;
         }
     }
-    
+
     /**
      * Set the required word arrays for decryption.
-     * 
+     *
      * @param cipherwords the original cipher words
      * @param words the words on which the character substitutions are tried
      * @param cipherFrequencies the frequencies of cipher characters
@@ -99,8 +114,17 @@ public class KeyFinder {
     }
 
     /**
-     * Find a key for decrypting a ciphered text. The correct error margin is
-     * found through binary search.
+     * Find a key for decrypting a ciphered text. The required word arrays,
+     * ciphered text's letters and their frequencies are given as parameters.
+     * The decryption will start with the error margin of 10%. This means that
+     * 10% of words that are decrypted with these character substitutions are
+     * allowed not to be found in the dictionary. If this does not produce any
+     * working key, the error margin is doubled. Once a high enough error margin
+     * is found (some possible key is found with it), the amount of errors is
+     * decreased by one and the decryption is attempted again. This is continued
+     * until the amount of errors is too small to produce a working key, and the
+     * previous found key is returned. This will ensure the best accuracy and
+     * performance time for decryption.
      *
      * @param cipherwords all the words from the encrypted text organized by
      * length
@@ -113,17 +137,15 @@ public class KeyFinder {
      */
     public char[] findKey(String[] cipherwords, StringBuilder[] words, String cipherLetters, double[] cipherFrequencies) {
         setArrays(cipherwords, words, cipherFrequencies);
-        //long start = System.currentTimeMillis();
-        double percentage = 0.1;
+        double errorMargin = 0.1;
         initializeArrays();
-        this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+        this.maxErrors = (int) Math.floor(this.cipherwords.length * errorMargin);
         this.errorWords = new int[0];
         this.workingKeyFound = false;
 
         char[] prevKey = copyKey(this.substitutions);
         int keysFound = 0;
 
-        // descending error margin
         while (true) {
             int[] allErrorWords = new int[this.maxErrors];
             for (int i = 0; i < allErrorWords.length; i++) {
@@ -141,15 +163,13 @@ public class KeyFinder {
                 if (keysFound > 0) {
                     break;
                 }
-                percentage *= 2;
-                this.maxErrors = (int) Math.floor(this.cipherwords.length * percentage);
+                errorMargin *= 2;
+                this.maxErrors = (int) Math.floor(this.cipherwords.length * errorMargin);
             }
             undoErrorChars(this.errorWords);
         }
 
         this.substitutions = prevKey;
-        //long stop = System.currentTimeMillis();
-        //System.out.println("time " + (stop - start));
         setFoundKeys(cipherLetters);
         checkForUnsubstitutedCharacters(cipherLetters);
 
@@ -214,7 +234,8 @@ public class KeyFinder {
     /**
      * Test key values for ciphered characters. Goes through words in
      * this.cipherwords array and tries to find key values for ciphered
-     * characters. Keys for characters are selected by availability and closest
+     * characters that produce sensible words (that are found from the
+     * dictionary). Keys for characters are selected by availability and closest
      * frequency.
      *
      * @param j character index
@@ -240,8 +261,8 @@ public class KeyFinder {
                 }
             }
             if (errors + 1 <= this.maxErrors) {
-                // for better detection if error margin is too small, slight chance of causing errors with very short texts and way too big error margin
-                // previously successfully translated words will not be marked as errors
+                // previously successfully translated words should not be marked as errors
+                // enhances detecting that the used error margin is too small
                 if (this.workingKeyFound) {
                     if (!checkIfIntInList(this.errorWords, i)) {
                         return false;
@@ -319,7 +340,7 @@ public class KeyFinder {
     /**
      * Find the closest frequency. Finds the key that has the same or closest
      * typical frequency as the ciphered character in cipher text. If the key is
-     * already used or tried for this character, another is chosen.
+     * already used or has been tried for this character, another is chosen.
      *
      * @param used a list of characters that have already been tried
      * @param freq frequency of the cipher char in cipher text
@@ -358,13 +379,13 @@ public class KeyFinder {
         }
         return false;
     }
-    
+
     /**
-     * Check if an int is on the given list.
+     * Check if an integer is on the given list.
      *
-     * @param list a list of ints
-     * @param i int that is searched for
-     * @return true if int was on the list, false if not
+     * @param list a list of integers
+     * @param i integer that is searched for
+     * @return true if i was on the list, false if not
      */
     public boolean checkIfIntInList(int[] list, int i) {
         for (int j = 0; j < list.length; j++) {
@@ -378,7 +399,7 @@ public class KeyFinder {
     /**
      * Find a word from the dictionary.
      *
-     * @param word the word that is searched
+     * @param word the word that is searched for
      * @return true if word was found, false if not
      */
     public boolean findWord(String word) {
@@ -388,7 +409,7 @@ public class KeyFinder {
     /**
      * Find a substring from the dictionary.
      *
-     * @param string the substring that is searched
+     * @param string the substring that is searched for
      * @return true if substring was found, false if not
      */
     public boolean findSubstring(String string) {

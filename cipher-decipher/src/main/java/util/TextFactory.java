@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.util.Random;
 
 /**
- * A class that produces test texts for the tester classes.
+ * A class that generates test texts for the tester classes.
  *
  */
 public class TextFactory {
@@ -14,6 +14,12 @@ public class TextFactory {
     private Crypter crypter;
     private String[] words;
 
+    /**
+     * Constructor for the TextFactory class.
+     *
+     * @param filename the name of the file that has the words that are used in the dictionary
+     * @param crypter crypter that is used to encrypt the text
+     */
     public TextFactory(String filename, Crypter crypter) {
         this.crypter = crypter;
         getTestWords(filename);
