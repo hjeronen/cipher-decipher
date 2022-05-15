@@ -44,7 +44,7 @@ When a suitable key for decrypting the text is found, it is returned to the Decr
 The util package holds the separate tester programs and their helper classes.
 
 #### PerformanceTester and AccuracyTester
-There are separate classes for running performance and accuracy tests for the algorithm. These are PerformanceTester and AccuracyTester. Both use TextFactory to create a random test text, which is encrypted with Crypter.
+There are separate classes for running performance and accuracy tests for the algorithm. These are PerformanceTester and AccuracyTester. They implement the Tester interface to utilize the same TesterListener in the GUI. Both use TextFactory to create a random test text, which is encrypted with Crypter.
 
 #### TextFactory
 The TextFactory will save the used dictionary in a String array, then form test texts by randomly picking words from the list and adding them to the result text that is then returned. The desired amount of error words is also added to the text by randomly picking the error word length (5-15 characters), then picking this amount of random characters and combining them to a word that is added to the text. The error words are added at the end of the text, but once the words are sorted by length, they will be spread out throughout the word list. The length of the text and the amount of error words are given as parameters.
