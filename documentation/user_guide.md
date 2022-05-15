@@ -1,11 +1,13 @@
 # User guide
 
 ## Program execution
-The program can be executed by running it from an IDE or from command line with command `gradle run`.
+The program can be executed by running the jar file (loadable in releases), running it from an IDE or from command line with command `gradle run`.
 
 ### Initial view
 
 ![initial_view](https://user-images.githubusercontent.com/73843204/167311808-4917ea38-660e-4f08-be9f-d31c41580017.png)
+
+NOTE: if the window gets too small to show the whole text, drag it bigger or double click it from the top bar.
 
 ### Input and output
 The program accepts a text as an input from the user. The text can be copy-pasted to the input text field in graphical user interface. The text is then decrypted by pushing the button 'Decrypt', and the decrypted text is printed in the output textfield.
