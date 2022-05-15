@@ -1,9 +1,12 @@
 package util;
 
+import java.util.Arrays;
 import logic.Decrypter;
 
 /**
- * A tester class for running accuracy tests.
+ * A tester class for running accuracy tests. Will take some time. Intermediate
+ * results can be printed to the console if wanted, just remove the comments
+ * around the print commands.
  *
  */
 public class AccuracyTester implements Tester {
@@ -113,14 +116,19 @@ public class AccuracyTester implements Tester {
         setup(repeats);
         System.out.println("0 errors");
         runTests(this.accuracies0Errors, words, 0);
+//        System.out.println(Arrays.toString(this.accuracies0Errors));
         System.out.println("5 errors");
         runTests(this.accuracies5Errors, words, 5);
+//        System.out.println(Arrays.toString(this.accuracies5Errors));
         System.out.println("12 errors");
         runTests(this.accuracies12Errors, words, 12);
+//        System.out.println(Arrays.toString(this.accuracies12Errors));
         System.out.println("14 errors");
         runTests(this.accuracies14Errors, words, 14);
+//        System.out.println(Arrays.toString(this.accuracies14Errors));
         System.out.println("21 errors");
         runTests(this.accuracies21Errors, words, 21);
+//        System.out.println(Arrays.toString(this.accuracies21Errors));
     }
 
     @Override
