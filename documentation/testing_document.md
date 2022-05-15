@@ -80,7 +80,7 @@ Here are the median values for text preprocessig times in nanoseconds:
 This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time. To get the frequencies of letters in a cipher text and all the characters that are used, the text has to be looped through, which takes O(n) time where n is the length of the text. Merge sort is used in sorting the words, which has the time complexity of O(m log m), where m is the amount of words.
 
 #### Word lookup times from trie
-Here are some times for searching words from the trie datastructure:
+Here are some times for searching a few words from the trie datastructure:
 | word length | median (ns) |
 | --- | --- |
 | 1 | 400 |
@@ -90,7 +90,13 @@ Here are some times for searching words from the trie datastructure:
 
 <img src="https://user-images.githubusercontent.com/73843204/168472131-86ace817-92ca-4316-bae4-8a8cffc5488a.png" width="600" height="400" />
 
-Searching for a word from trie should happen in O(n) time where n is the length of the word. The times are measured for several times for each word, and the medians of the times are listed above. As expected, the time increases linearly with the word length.
+Searching for a word from trie should happen in O(n) time where n is the length of the word. For these results, I used only a few predetermined words. The times are measured for several times for each word, and the medians of the times are listed above. As expected, at least for these words the time increases linearly with the word length. This is not at all a good sample, but attempting to run tests for 5000-100000 random words produced some very skewed results. I don't know if this was because of how java measures time.
+
+I did run the test for 1000 random words and printed the median times to a file, and plotted a histogram of these - this test is not part of the standard PerformanceTester program, but here is a graph of the results I got:
+
+<img src="https://user-images.githubusercontent.com/73843204/168491890-ee182b5f-f629-4f5f-8b60-fda81cfe6955.png" width="600" height="400" />
+
+Most words here are found from the trie in around 1000 nanoseconds (or 1 microsecond). Presumably for short words the lookup time is shorter, and for longer words longer, but extreme times are rare. It can be that most of the words that were randomly chosen here were short, which is why the times are distributed as they are, but generally it can be stated that any random word should be found very quickly from the trie.
 
 #### Key finding times for test texts without errors
 Here are the average times for finding a key for a text without any errors. The times are measured in nanoseconds, but transformed to milliseconds for the table. The scatter plot image uses nanoseconds.
