@@ -1,7 +1,7 @@
 # User guide
 
 ## Program execution
-The program can be executed by running the jar file (loadable as a [release](https://github.com/hjeronen/cipher-decipher/releases/tag/Tiralabra)), running it from an IDE or from command line with command `gradle run`.
+The program can be executed by running the jar file (available as a [release](https://github.com/hjeronen/cipher-decipher/releases/tag/Tiralabra)), running it from an IDE or from command line with command `gradle run`.
 
 ### Initial view
 
