@@ -14,13 +14,13 @@ Some tests use a very short word list to check that forming the dictionary and t
 #### Node
 The tests for Node class check that children can be added to the node and retrieved from it, that if a child does not exist null is returned, that the size of list of node's children is properly increased when it is full and that it is increased by 5.
 
-#### Trie datastructure
+#### Trie
 The Trie class is tested to make sure that words in the given word list are found after inserting them to the trie, that the function for finding words returns true for whole words and false for subtsrings, that the function for finding substrings (beginning of a word) does return true for valid substrings and false for invalid substrings, and that searching for words that are not inserted in the trie returns false.
 
 ### Logic
 
 #### Decrypter
-The tests for the Decrypter class check handling of user input text and make sure that decryption of texts works as intended, that the result texts are what is expected. For example, the non-alphabetical characters should be unchanged in the result text, and if the input text contains nothing but special characters, the text is returned as it is. The actual text handling and key finding happens in other classes, TextHandler and KeyFinder, and these are tested separately.
+The tests for the Decrypter class check handling of user input text and make sure that decryption of texts works as intended, that the result texts are what is expected. For example, the non-alphabetical characters should be unchanged in the result text, and if the input text contains nothing but special characters, the text is returned as it is. The actual text handling and key finding happen in other classes, TextHandler and KeyFinder, and these are tested separately.
 
 When testing the decryption function, there are two possible decryptions for the encrypted word 'tifmm' in the test trie. Either 'shell' or 'zeiss' are working decryptions, but because 'z' has normally very low frequency, 's' should be chosen before 'z', since 't' (and actually all the letters in a short word) has very high frequency.
 
@@ -56,51 +56,74 @@ The tests can be run from the GUI by clicking either of the buttons 'Performance
 ## Performance testing
 The performance tests are run on an `AMD Ryzen 9 5900X` CPU with 32GB of RAM. The times are measured in nanoseconds, but the results that are printed are turned to milliseconds.
 
-The tests are run for randomly formed ciphertexts of varying length or with increasing number of errors. The time is measured for the KeyFinder's findKey() function only (not for forming and sorting text arrays).
+The tests are run for randomly formed ciphertexts of varying length or with increasing number of errors (error = a word that is not in the dictionary). The time is measured for the KeyFinder's findKey() function only, not for forming and sorting text arrays - text preprocessing times are measured separately.
 
-The decryption time depends largely on the amount of error words, but can still vary a lot between different texts. For this reason, using only one text for one test case might be very misleading. In the following tests, a random text is generated for each iteration. The time for decrypting a text is measured several times, and the median of these times is saved into the times array - then an average is counted from the medians of all the different texts of each test case.
+The decryption time depends largely on the amount of error words, but can still vary a lot between different texts. For this reason, using only one text for one test case might be very misleading. In the following tests, a random text is generated for each iteration. The time for decrypting a text is measured several times, and the median of these times is saved into an array holding the median times for all the texts - then an average is counted from the medians of all the different texts of each test case and saved in the final result array, whose contents are presented in the tables. The median times for all the test texts are presented in the graphs.
 
 #### Text preprocessing times
-Here are average text preprocessig times in nanoseconds:
-````````````````````````````````````````````
-60 words average 178470 ns
-100 words average 108420 ns
-500 words average 241460 ns
-1000 words average 917510 ns
-5000 words average 9259390 ns
-10000 words average 32999600 ns
-````````````````````````````````````````````
-This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time.
+Here are the median values for text preprocessig times in nanoseconds:
+| words | median (ns) |
+| --- | --- |
+| 60 | 269600 |
+| 100 | 308100 |
+| 500 | 1618900 |
+| 1000 | 1474500 |
+| 5000 | 10206900 |
+| 10000 | 34454500 |
+
+<img src="https://user-images.githubusercontent.com/73843204/168471668-bc803dc6-132e-4737-a825-c3163fee46a9.png" width="600" height="400" />
+
+This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time. To get the cipherfrequencies and all the characters that are used, the text has to be looped through, which takes O(n) time where n is the length of the text. Merge sort is used in sorting the words, which has the time complexity of O(m log m), where m is the amount of words.
+
+#### Word lookup times from trie
+Here are some times for searching words from the trie datastructure:
+| word length | median (ns) |
+| --- | --- |
+| 1 | 400 |
+| 4 | 1200 |
+| 10 | 2100 |
+| 19 | 3500 |
+
+<img src="https://user-images.githubusercontent.com/73843204/168472131-86ace817-92ca-4316-bae4-8a8cffc5488a.png" width="600" height="400" />
+
+Searching for a word from trie should happen in O(n) time where n is the length of the word. The times are measured for several times for each word, and the medians of the times are listed above. As expected, the time increases linearly with the word length.
 
 #### Key finding times for test texts without errors
-````````````````````````````````````````````
-When all words are found in the dictionary: 
-60 words average time ms: 279     min 1 max 631
-100 words average time ms: 256    min 35 max 634
-500 words average time ms: 45     min 2 max 134
-1000 words average time ms: 185   min 9 max 446
-5000 words average time ms: 214   min 17 max 452
-10000 words average time ms: 210  min 9 max 446
-````````````````````````````````````````````
-A new text is formed for each iteration, and then its decryption time is measured 11 times and a median of these times is saved into the array - the results show the mean of the medians of all the texts, and the smallest and largest times of the whole array.
+Here are the average times for finding a key for a text without any errors. The times are measured in nanoseconds, but transformed to milliseconds for the table. The scatter plot image uses nanoseconds.
+
+| words | average (ms) | min | max |
+| --- | --- | --- | --- |
+| 60 | 53 | 1 | 258 |
+| 100 | 232 | 11 | 743 |
+| 500 | 167 | 2 | 571 |
+| 1000 | 265 | 3 | 749 |
+| 5000 | 186 | 2 | 426 |
+| 10000 | 310 | 2 | 1020 |
+
+<img src="https://user-images.githubusercontent.com/73843204/168466825-5179ae68-41d0-4593-89ce-2a6d2913daca.png" width="600" height="400" />
+
+The test is repeated 10 times for each test case (60 words, 100 words...) and a new text is formed for each iteration, because the times vary a lot between different texts. The key finding time is measured 11 times for each text, and a median of these times is saved into the result array for this test case. The average, minimum and maximum times for all the texts of this test case are saved into the final result array and shown in the above results. (To clarify, all the median times for e.g. texts with 60 words are saved into the array medianTimes - the average, minimum and maximum values of this array are saved into place 0 in the array runtimesForTextsWithNoErrors, and all the contents of this array are shown in the above table and chart.)
 
 The times are measured with System.nanotime(), but they are printed out in milliseconds. The decryption time varies a lot between the texts. I believe this might be due to what kind of words there are in the text and how well the cipher character frequencies match the expected frequencies. If some text has only small words, decrypting it might take a longer time, because small words have several possible translations and only few keys are discovered with each word, which then leads to more recursive calls if the first guesses are not right. Starting the decryption with long words decreases the decryption time significantly, because longer words tend to have fewer possible translations and several keys can be found with just one word, so there would be fewer calls of the recursive function.
 
-The maximum length of text (the sum of the lengths of the words in word arrays) that is handled in the recursive function is 2000 characters. Therefore the time the recursive decryption function uses should not increase that much with longer texts. The text preprocessing might slightly increase the computing time as a whole, since the text is broken into word arrays that are sorted (the sorting function's time complexity is O(n log n)), but these times are not measured here.
+The maximum length of text (the sum of the lengths of the words in word arrays) that is handled in the recursive function is 2000 characters. Therefore the time the recursive key finding function uses should not increase that much with longer texts. The text preprocessing might slightly increase the computing time as a whole, since the text is broken into word arrays that are sorted (the sorting function's time complexity is O(n log n)), but these times are not measured here.
 
 #### Key finding times for random test texts with errors
-``````````````````````````````````````````
-All random error texts: 
-0 errors average time ms: 200     min 4 max 823
-5 errors average time ms: 1003    min 9 max 8301
-10 errors average time ms: 878    min 36 max 2152
-15 errors average time ms: 10790  min 6397 max 14363
-20 errors average time ms: 9445   min 5997 max 12165
-25 errors average time ms: 31049  min 25952 max 28605
-``````````````````````````````````````````
-All the texts with errors used in the tests have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. An error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 5-15 characters (this is also determined randomly) - I thought this would be a good approximation of general cases. The texts that are tested have 0, 5, 10, 15 and 20 error words. The test is performed 10 times for each test case, with a new random text formed for every decryption - the time for a single text is measured 11 times, and a median is taken from these. The average value above is the mean of all medians.
+Here are the times for randomly formed texts with increasing number of errors. The error words (5, 10, 15, 20 and 25) are marked as percentages (2.5, 5.0, 7.5, 10.0 and 12.5) of all the words in  the text (200 words each). Times are in milliseconds in the table, and in nanoseconds in the graph.
 
-In general it can be stated that the amount of errors increases the decryption time. It is a bit odd that average time for texts with 5 errors is larger than for a text with 10 errors, and 15 errors time is larger than 20 errors - but the times vary a lot for different texts, which propably skewes the results. The time for 25 errors is expected to be rather high because there the initial error margin 10% is not enough, and attempting a decryption with a hint too small error margin takes some time. In this case, the 10% error margin is doubled, and the decryption is attempted again. The amount of errors allowed is then decreased until reaching the limit where decryption does not work again, and too small error margin is attempted for the second time, which increases performance time.
+| error words (%) | average (ms) | min | max |
+| --- | --- | --- | --- |
+| 2.5 | 1671 | 29 | 7796 |
+| 5.0 | 1020 | 25 | 2901 |
+| 7.5 | 2108 | 41 | 5657 |
+| 10.0 | 6087 | 28 | 51764 |
+| 12.5 | 30667 | 19051 | 37803 |
+
+<img src="https://user-images.githubusercontent.com/73843204/168471014-7cf80aa6-fa90-4e3a-9ac2-1d29f55793dd.png" width="600" height="400" />
+
+All the texts used in the tests have 200 words in total, including a changing number of randomly formed error words that are not expected to be found in the dictionary. The amount of words is the same because the length of the text that is processed is limited, and this way the error words are most likely included in the text that is used for decryption. An error word is formed by picking random integers between 97-122 which are then changed to chars. The error words have the length of 5-15 characters (this is also determined randomly) - I thought this would be a good approximation of general cases. The test is performed 10 times for each test case, with a new random text formed for every decryption - the time for a single text is measured 11 times, and a median is taken from these. The average value above is the mean of all medians.
+
+In general it can be stated that the amount of errors increases the decryption time. Again, the times vary a lot for different texts, which propably skewes the results a bit. The minimum and average times for 25 errors are expected to be rather high because the initial error margin is 10%, which is not enough here, and attempting a decryption with a hint too small error margin takes some time. If initially too small, the 10% error margin is doubled, and the decryption is attempted again. The amount of errors allowed is then decreased until reaching the limit where it is too small for the text, and a too small error margin is attempted for the second time. The overall performance time is largely determined by how long it takes before the algorithm decides that an error margin is too small, and when this is done twice, the time for  text with >10% errors should be doubled to the times of texts with <=10% errors.
 
 So the number of error words increases performance time, as does the length of the text. Here all the test texts are of the same length, but below are times for texts with different lengths and same amount of errors.
 
