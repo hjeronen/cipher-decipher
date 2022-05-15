@@ -49,9 +49,9 @@ The current test coverage can be seen below:
 The ui package, Main class, the PerformanceTester and the AccuracyTester are not included in the test report. Getters and setters in other classes are not tested, they are only used in unit testing.
 
 ## Performance and Accuracy testing
-The performance and accuracy testing is done using PerformanceTester and AccuracyTester classes. Both use TextFactory and Crypter classes for forming random test texts and encrypting them. The test texts are formed by picking random words from a word list (the same that is used for the actual program) and adding randomly formed error words to the text. The text is then encrypted and given to the Decrypter for decryption, and the computing time or accuracy of decryption with the original text is then measured and saved to an array. At the end, the average values of each test case are set into the output text field in the GUI.
+The performance and accuracy testing is done using PerformanceTester and AccuracyTester classes. Both use TextFactory and Crypter classes for forming random test texts and encrypting them. The test texts are formed by picking random words from a word list (the same that is used for the actual program) and adding randomly formed error words to the text. The text is then encrypted. In performance testing, the TextHandler is used to do the text preprocessing, and KeyFinder for finding the key to decrypt the text. The times for these processes are then measured. In accuracy testing, the cipher text is given to the Decrypter for decryption, and the accuracy of the decrypted text with the original text is then measured. At the end, the results of each test case are set into the output text field in the GUI.
 
-The tests can be run from the GUI by clicking either of the buttons 'Performance tests' or 'Accuracy tests'. The running time for the tests is very long (A couple hours).
+The tests can be run from the GUI by clicking either of the buttons 'Performance tests' or 'Accuracy tests'. The running time for the tests is very long (several hours).
 
 ## Performance testing
 The performance tests are run on an `AMD Ryzen 9 5900X` CPU with 32GB of RAM. The times are measured in nanoseconds, but the results that are printed are turned to milliseconds.
@@ -59,6 +59,8 @@ The performance tests are run on an `AMD Ryzen 9 5900X` CPU with 32GB of RAM. Th
 The tests are run for randomly formed ciphertexts of varying length or with increasing number of errors (error = a word that is not in the dictionary). The time is measured for the KeyFinder's findKey() function only, not for forming and sorting text arrays - text preprocessing times are measured separately.
 
 The decryption time depends largely on the amount of error words, but can still vary a lot between different texts. For this reason, using only one text for one test case might be very misleading. In the following tests, a random text is generated for each iteration. The time for decrypting a text is measured several times, and the median of these times is saved into an array holding the median times for all the texts - then an average is counted from the medians of all the different texts of each test case and saved in the final result array, whose contents are presented in the tables. The median times for all the test texts are presented in the graphs.
+
+For most test cases, the test is repeated for 10 different texts. Making generalizations would require a lot more testing, but it is very time consuming, considering that in worst case the time for decrypting a text could be up to 50-60 seconds. The most interesting thing that shows from these tests is how much the decryption time can vary between different texts and how the amount of error words (percentage of words in the text that are not found in the dictionary) affects the time, and I thought these repetitions would be enough to show that.
 
 #### Text preprocessing times
 Here are the median values for text preprocessig times in nanoseconds:
@@ -73,7 +75,7 @@ Here are the median values for text preprocessig times in nanoseconds:
 
 <img src="https://user-images.githubusercontent.com/73843204/168471668-bc803dc6-132e-4737-a825-c3163fee46a9.png" width="600" height="400" />
 
-This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time. To get the cipherfrequencies and all the characters that are used, the text has to be looped through, which takes O(n) time where n is the length of the text. Merge sort is used in sorting the words, which has the time complexity of O(m log m), where m is the amount of words.
+This includes getting all the unique letters used in the text, getting character frequencies, forming a word array, sorting it and copying it to the second word array. Increasing text length will naturally increase preprocessing time. To get the frequencies of letters in a cipher text and all the characters that are used, the text has to be looped through, which takes O(n) time where n is the length of the text. Merge sort is used in sorting the words, which has the time complexity of O(m log m), where m is the amount of words.
 
 #### Word lookup times from trie
 Here are some times for searching words from the trie datastructure:
@@ -128,38 +130,31 @@ In general it can be stated that the amount of errors increases the decryption t
 So the number of error words increases performance time, as does the length of the text. Here all the test texts are of the same length, but below are times for texts with different lengths and same amount of errors.
 
 #### Key finding times for random texts with different length and same amount of errors
-``````````````````````````````````````````
-Run times for texts with 20 errors: 
-60 words average time ms: 19769         min 11760 max 27815
-100 words errors average time ms: 9003  min 5421 max 13765
-200 words errors average time ms: 714   min 16 max 1527
-500 words errors average time ms: 1485  min 315 max 3202
-``````````````````````````````````````````
-Here the decryption time actually decreses when the amount of errors stays the same and the amount of words increases. A new random text is formed for each round of each test case, and again the times vary a lot between different texts. The shortest time for 200 words is very short, and this might distort the results again - although the longest time is rather short as well. With five hundred words, probably not all of the words are included in the recursion, because the text length is limited and the shortest words are left out. With 60 words, error margin is very large, and initial 10% error margin will have to be increased twice, which increases the execution time. Same goes for 100 words. This might actually be why 200 words time is so good, because the initial error margin is just right.
+| words | average (ms) | min | max |
+| --- | --- | --- | --- |
+| 60 | 18790 | 11333 | 27835 |
+| 100 | 9713 | 6535 | 13512 |
+| 200 | 821 | 16 | 1585 |
+| 500 | 2282 | 15 | 8191 |
+
+<img src="https://user-images.githubusercontent.com/73843204/168476441-cee790f9-85e3-49c1-a1b1-2b63d4913f14.png" width="600" height="400" />
+
+Here the decryption time actually decreses when the amount of errors stays the same and the amount of words increases. The error words are not the same for each text, however. A new random text is formed for each round of each test case, and again the times vary a lot between different texts. With five hundred words, probably not all of the words are included in the recursion, because the text length is limited and the shortest words are left out. This could mean that some of the error words are not included if they are very short and other words are very long - or if they are all very long, some of the correct words might be left out and the error margin might be a bit higher for the text. With 60 words, error margin is very large, and initial 10% error margin will have to be increased twice, which increases the execution time significantly. Same goes for 100 words. This is why the times for 200 and 500 words are much better, because the initial error margin is enough, and decryption with a too small error margin is attempted only once.
 
 #### Key finding times for the same text with increasing number of errors
-````````````````````````````````````````````
-Run times for the same text with increasing number of errors: 
-0 errors average time ms: 802
-5 errors average time ms: 878
-10 errors average time ms: 1201
-15 errors average time ms: 6743
-20 errors average time ms: 2714
-````````````````````````````````````````````
-Here are the times for the same text with increasing number of errors. The text has 200 words. The time for each case is measured 10 times. Looking at the times measured for texts with 0 errors, this one has a rather long decryption time as baseline, 802 ms when the average for 10000 words was 145 ms. As mentioned, the decryption time varies a lot for different texts. It is also curious how the decryption time is lower for 20 errors than for 15 errors.
+Here are measured some times for the same text with increasing number of errors. The text has 200 words, and the amounts of error words are 0, 5, 10, 15 and 20 words, so the error margins are 0%, 2.5%, 5%, 7.5% and 10%. The times are measured 10 times for each case of errors, and a median of these times is taken. The test text is the same for every test case, but the error words change (because of how they are added to the text).
 
-I also ran the texts for second time and got very different results:
-````````````````````````````````````````````
-Run times for the same text with increasing number of errors: 
-0 errors average time ms: 27      min 27 max 28
-5 errors average time ms: 31      min 31 max 32
-10 errors average time ms: 11638  min 11627 max 11654
-15 errors average time ms: 2916   min 2911 max 2921
-20 errors average time ms: 2576   min 2568 max 2591
-````````````````````````````````````````````
-Here the initial decryption time is very short, and suddenly increases with 10 errors. I'm not sure what happened here, or why the time decreases after that - probably because of how the error words are distributed among the normal words. The overall time mostly depends on how fast the algorithm determines the last used error margin is too small, and this is discovered faster with some texts than with others.
+| error words (%) | median (ms) |
+| --- | --- | 
+| 0.0 | 91 |
+| 2.5 | 132 |
+| 5.0 | 1195 |
+| 7.5 | 1301 |
+| 10.0 | 708 |
 
-This is why I don't think it is a good idea to make any generalizations based on just one text, but rather look at the distribution of times for different texts. Running test with larger amount of texts would be better, but very time consuming.
+<img src="https://user-images.githubusercontent.com/73843204/168478766-173b03be-7d20-4fec-a7e8-d4c01dfcb5a7.png" width="600" height="400" />
+
+Looking at the times measured for texts with 0 errors, this text has a rather fast decryption time as baseline, 91 ms. As mentioned, the decryption time varies a lot for different texts. It is also curious how the decryption time is lower for 20 (10%) errors than for 15 (7.5%) errors. But again, the decryption time also depends on what kind of error words there are and how they are placed in the word array, long ones at the beginning and short ones at the end. The error words are generated randomly, so it is not possible to say here which is better or worse.
 
 ### The error margin
 The times here are measured (in most cases) up to the 10% error margin. The dictionary that is used is very large (around 400 000 english words), so the error margin should not be very large for an average cipher text. This is of course very case sensitive. For any 'normal' text, almost all the words should be found in the dictionary, barring any misspelled words. In manual testing when decrypting more exotic texts (such as the Star Wars -texts in [sample texts](https://github.com/hjeronen/cipher-decipher/blob/main/cipher-decipher/sample_texts.md)) the 10 percent error margin works surprisingly well.
